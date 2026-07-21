@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 
 import { PostCard } from "@/components/PostCard"
 import { PostDialog } from "@/components/PostDialog"
+import { WebsiteContext } from "@/components/WebsiteContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { seedPosts } from "@/data/seed"
@@ -80,6 +81,8 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-[1500px] px-5 py-8 md:px-8 md:py-10">
+        <WebsiteContext />
+
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-px w-6 bg-muted-foreground/50" /> Content pipeline</div>

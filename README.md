@@ -1,31 +1,36 @@
-# VSBL MVP
+# Contextly website onboarding
 
-A lightweight content planning board with one swimlane per social platform. Posts move from **Idea** to **Ready to post** and persist in the browser.
+An onboarding flow that crawls a website with Firecrawl, converts its pages to markdown, and creates a downloadable ZIP in the browser.
 
-## Run locally
+## Setup
 
 ```bash
 npm install
+cp .env.example .env
+```
+
+Add your Firecrawl API key to `.env`:
+
+```env
+FIRECRAWL_API_KEY=fc-YOUR_API_KEY
+```
+
+Then start the app:
+
+```bash
 npm run dev
 ```
 
-Open the local URL printed by Vite (usually `http://localhost:5173`).
+Open the local URL printed by Vite (usually `http://localhost:5173`). Enter a website URL, wait for the crawl to complete, and download the generated markdown ZIP.
 
-## Stack
+## Security
 
-- React + TypeScript + Vite
-- Tailwind CSS v4
-- shadcn/ui-compatible component structure
-- Radix Dialog + Lucide icons
-- Browser localStorage (no backend required)
+The API key is read only by the Vite development server and is never included in the browser bundle. `.env` and other environment variants are ignored by git; `.env.example` is safe to commit.
 
-## MVP architecture
+## Architecture
 
-- `src/App.tsx` — board state and layout
-- `src/components/PostCard.tsx` — post card and stage controls
-- `src/components/PostDialog.tsx` — create-post dialog
-- `src/components/ui/` — reusable shadcn-style primitives
-- `src/types.ts` — platform and post domain model
-- `src/data/seed.ts` — initial demo content
+- `src/App.tsx` — onboarding, crawl polling, progress, and client-side ZIP creation
+- `vite.config.ts` — server-only Firecrawl proxy powered by Vite middleware
+- `JSZip` — packages each crawled page as a separate markdown file
 
-The data layer is intentionally local for the first demo. It can later be swapped for an API/database without changing the board components.
+The included API proxy runs with the Vite development server. For a production deployment, move the same proxy logic into your hosting provider's serverless function or backend service so the key remains private.
