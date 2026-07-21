@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig, loadEnv, type Plugin } from "vite"
 
 import { handleAnalyzeBusiness } from "./server/analyzeBusiness"
+import { handleGeneratePost } from "./server/generatePost"
 
 const FIRECRAWL_API = "https://api.firecrawl.dev/v2"
 
@@ -95,6 +96,22 @@ function firecrawlCrawlProxy(apiKey: string): Plugin {
   }
 }
 
+function aiGeneratePlugin(): Plugin {
+  return {
+    name: "vsbl-ai-generate",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          const handled = await handleGeneratePost(req, res)
+          if (!handled) next()
+        } catch (error) {
+          next(error)
+        }
+      })
+    },
+  }
+}
+
 /** Single-URL scrape + vertical extraction used by the business chip / coverage profile. */
 function firecrawlAnalyzePlugin(): Plugin {
   return {
@@ -116,11 +133,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
   if (env.FIRECRAWL_API_KEY) process.env.FIRECRAWL_API_KEY = env.FIRECRAWL_API_KEY
   if (env.firecrawl_api_key) process.env.firecrawl_api_key = env.firecrawl_api_key
+  if (env.OPENAI_API_KEY) process.env.OPENAI_API_KEY = env.OPENAI_API_KEY
+  if (env.OPENAI_MODEL) process.env.OPENAI_MODEL = env.OPENAI_MODEL
 
   const apiKey = env.FIRECRAWL_API_KEY || env.firecrawl_api_key || ""
 
   return {
-    plugins: [react(), tailwindcss(), firecrawlCrawlProxy(apiKey), firecrawlAnalyzePlugin()],
+    plugins: [react(), tailwindcss(), firecrawlCrawlProxy(apiKey), firecrawlAnalyzePlugin(), aiGeneratePlugin()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

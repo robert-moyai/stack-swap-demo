@@ -5,6 +5,7 @@ import { BusinessChip } from "@/components/BusinessChip"
 import { CoveragePanel } from "@/components/CoveragePanel"
 import { PostCard } from "@/components/PostCard"
 import { PostDialog } from "@/components/PostDialog"
+import { PreparePostDialog } from "@/components/PreparePostDialog"
 import { WebsiteContext, type CrawlPage } from "@/components/WebsiteContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -49,6 +50,8 @@ export default function App() {
   const [dialogContentType, setDialogContentType] = useState<ContentType | undefined>(undefined)
   const [addingPlatform, setAddingPlatform] = useState(false)
   const [newPlatformName, setNewPlatformName] = useState("")
+  const [contextPages, setContextPages] = useState<CrawlPage[]>([])
+  const [preparingPost, setPreparingPost] = useState<Post | null>(null)
 
   useEffect(() => localStorage.setItem(storageKey, JSON.stringify(posts)), [posts])
   useEffect(() => saveProfile(profile), [profile])
@@ -105,6 +108,13 @@ export default function App() {
 
   function handleWebsiteLoaded(url: string, pages: CrawlPage[]) {
     setProfile(profileFromCrawl(url, pages))
+    setContextPages(pages)
+  }
+
+  function completePreparedPost(content: string) {
+    if (!preparingPost) return
+    setPosts((current) => current.map((post) => post.id === preparingPost.id ? { ...post, content, status: "ready", updatedAt: "Just now" } : post))
+    setPreparingPost(null)
   }
 
   function addPlatform() {
@@ -190,7 +200,7 @@ export default function App() {
                           <Badge variant="secondary" className="ml-1 min-w-6 justify-center px-1.5">{columnPosts.length}</Badge>
                         </div>
                         <div className="grid gap-3 xl:grid-cols-2">
-                          {columnPosts.map((post) => <PostCard key={post.id} post={post} onMove={() => movePost(post)} onDelete={() => deletePost(post.id)} />)}
+                          {columnPosts.map((post) => <PostCard key={post.id} post={post} onMove={() => post.status === "idea" ? setPreparingPost(post) : movePost(post)} onDelete={() => deletePost(post.id)} />)}
                           {columnPosts.length === 0 && (
                             <button onClick={() => openCreate(platform)} className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground transition hover:border-foreground/25 hover:bg-white">
                               <ArrowUpRight className="mb-2 size-4" />
@@ -275,6 +285,11 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {preparingPost && (() => {
+        const platform = platforms.find((item) => item.id === preparingPost.platform) ?? customPlatformConfig(preparingPost.platform)
+        return <PreparePostDialog open onOpenChange={(open) => { if (!open) setPreparingPost(null) }} post={preparingPost} platformName={platform.name} bestPractices={platform.bestPractices} contextPages={contextPages} onComplete={completePreparedPost} />
+      })()}
 
       {dialogOpen && (
         <PostDialog

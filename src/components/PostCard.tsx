@@ -27,7 +27,7 @@ export function PostCard({ post, onMove, onDelete }: { post: Post; onMove: () =>
         <h3 className="mt-3 text-[15px] font-semibold leading-snug">{post.title}</h3>
         {post.content && <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">{post.content}</p>}
         <Button variant="ghost" size="sm" onClick={onMove} className="mt-4 -ml-2 text-muted-foreground hover:text-foreground">
-          {isIdea ? <>Move to ready <ArrowRight className="size-3.5" /></> : <><ArrowLeft className="size-3.5" /> Back to ideas</>}
+          {isIdea ? <>Post <ArrowRight className="size-3.5" /></> : <><ArrowLeft className="size-3.5" /> Back to ideas</>}
         </Button>
       </CardContent>
     </Card>

@@ -10,8 +10,10 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.17",
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-slot": "latest",
+    "ai": "^7.0.33",
     "class-variance-authority": "latest",
     "clsx": "latest",
     "jszip": "^3.10.1",
