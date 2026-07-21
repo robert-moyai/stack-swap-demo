@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Pencil, Trash2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CONTENT_TYPE_META } from "@/data/playbooks"
 import type { Post } from "@/types"
 
-export function PostCard({ post, onMove, onDelete }: { post: Post; onMove: () => void; onDelete: () => void }) {
+export function PostCard({ post, onMove, onEdit, onDelete }: { post: Post; onMove: () => void; onEdit: () => void; onDelete: () => void }) {
   const isIdea = post.status === "idea"
   return (
     <Card className="group border-black/[0.07] bg-card transition hover:-translate-y-0.5 hover:shadow-md">
@@ -18,8 +18,11 @@ export function PostCard({ post, onMove, onDelete }: { post: Post; onMove: () =>
               <Badge variant="outline" className="font-medium">{CONTENT_TYPE_META[post.contentType].label}</Badge>
             )}
           </div>
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="-mr-2 -mt-2 size-8 text-muted-foreground" aria-label="Delete post" onClick={onDelete} title="Delete post">
+          <div className="-mr-2 -mt-2 flex">
+            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Edit post" onClick={onEdit} title="Edit post">
+              <Pencil className="size-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Delete post" onClick={onDelete} title="Delete post">
               <Trash2 className="size-4" />
             </Button>
           </div>

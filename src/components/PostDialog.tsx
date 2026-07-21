@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { CONTENT_TYPE_META } from "@/data/playbooks"
 import { contentTypes } from "@/types"
-import type { ContentType, Platform, PlatformOption, PostDraft, PostStatus } from "@/types"
+import type { ContentType, Platform, PlatformOption, Post, PostDraft, PostStatus } from "@/types"
 
 export function PostDialog({
   open,
@@ -13,6 +13,7 @@ export function PostDialog({
   defaultPlatform,
   defaultContentType,
   platformOptions,
+  post,
   onSave,
 }: {
   open: boolean
@@ -20,13 +21,15 @@ export function PostDialog({
   defaultPlatform: Platform
   defaultContentType?: ContentType
   platformOptions: PlatformOption[]
+  post?: Post
   onSave: (post: PostDraft) => void
 }) {
-  const [platform, setPlatform] = useState<Platform>(defaultPlatform)
-  const [status, setStatus] = useState<PostStatus>("idea")
-  const [contentType, setContentType] = useState<ContentType | "">(defaultContentType ?? "")
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
+  const isEditing = Boolean(post)
+  const [platform, setPlatform] = useState<Platform>(post?.platform ?? defaultPlatform)
+  const [status, setStatus] = useState<PostStatus>(post?.status ?? "idea")
+  const [contentType, setContentType] = useState<ContentType | "">(post?.contentType ?? defaultContentType ?? "")
+  const [title, setTitle] = useState(post?.title ?? "")
+  const [content, setContent] = useState(post?.content ?? "")
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -50,32 +53,36 @@ export function PostDialog({
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-card p-6 shadow-2xl outline-none">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <Dialog.Title className="text-xl font-semibold tracking-tight">Create a post</Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-muted-foreground">Capture the idea now. Refine it as it moves through the board.</Dialog.Description>
+              <Dialog.Title className="text-xl font-semibold tracking-tight">{isEditing ? "Edit post" : "Create a post"}</Dialog.Title>
+              <Dialog.Description className="mt-1 text-sm text-muted-foreground">{isEditing ? "Update the title or idea content." : "Capture the idea now. Refine it as it moves through the board."}</Dialog.Description>
             </div>
             <Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Close"><X className="size-4" /></Button></Dialog.Close>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <label className="text-sm font-medium">Platform
-                <select className={inputClass} value={platform} onChange={(e) => setPlatform(e.target.value)}>
-                  {platformOptions.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
-                </select>
-              </label>
-              <label className="text-sm font-medium">Stage
-                <select className={inputClass} value={status} onChange={(e) => setStatus(e.target.value as PostStatus)}>
-                  <option value="idea">Idea</option>
-                  <option value="ready">Ready to post</option>
-                </select>
-              </label>
-            </div>
-            <label className="block text-sm font-medium">Content type
-              <select className={inputClass} value={contentType} onChange={(e) => setContentType(e.target.value as ContentType | "")}>
-                <option value="">No type</option>
-                {contentTypes.map((value) => <option key={value} value={value}>{CONTENT_TYPE_META[value].label}</option>)}
-              </select>
-            </label>
+            {!isEditing && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="text-sm font-medium">Platform
+                    <select className={inputClass} value={platform} onChange={(e) => setPlatform(e.target.value)}>
+                      {platformOptions.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-sm font-medium">Stage
+                    <select className={inputClass} value={status} onChange={(e) => setStatus(e.target.value as PostStatus)}>
+                      <option value="idea">Idea</option>
+                      <option value="ready">Ready to post</option>
+                    </select>
+                  </label>
+                </div>
+                <label className="block text-sm font-medium">Content type
+                  <select className={inputClass} value={contentType} onChange={(e) => setContentType(e.target.value as ContentType | "")}>
+                    <option value="">No type</option>
+                    {contentTypes.map((value) => <option key={value} value={value}>{CONTENT_TYPE_META[value].label}</option>)}
+                  </select>
+                </label>
+              </>
+            )}
             <label className="block text-sm font-medium">Title
               <input autoFocus className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give the post a working title" />
             </label>
@@ -84,7 +91,7 @@ export function PostDialog({
             </label>
             <div className="flex justify-end gap-2 pt-2">
               <Dialog.Close asChild><Button type="button" variant="outline">Cancel</Button></Dialog.Close>
-              <Button type="submit">Add to board</Button>
+              <Button type="submit">{isEditing ? "Save changes" : "Add to board"}</Button>
             </div>
           </form>
         </Dialog.Content>

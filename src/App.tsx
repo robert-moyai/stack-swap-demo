@@ -22,9 +22,10 @@ import {
 import { CONTENT_TYPE_META } from "@/data/playbooks"
 import { loadProfile, saveProfile } from "@/data/profile"
 import { seedPosts } from "@/data/seed"
+import { useWebsiteCrawl } from "@/hooks/useWebsiteCrawl"
 import { computeCoverage } from "@/lib/coverage"
 import { profileFromCrawl } from "@/lib/profileFromCrawl"
-import { isPlatformId, type BusinessProfile, type ContentType, type Platform, type PlatformId, type Post, type PostDraft, type PostStatus } from "@/types"
+import { isPlatformId, type ContentType, type Platform, type PlatformId, type Post, type PostDraft, type PostStatus } from "@/types"
 
 const storageKey = "postflow-posts-v1"
 
@@ -54,6 +55,8 @@ export default function App() {
   const [newPlatformName, setNewPlatformName] = useState("")
   const [contextPages, setContextPages] = useState<CrawlPage[]>([])
   const [preparingPost, setPreparingPost] = useState<Post | null>(null)
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const websiteCrawl = useWebsiteCrawl(handleWebsiteLoaded)
 
   useEffect(() => localStorage.setItem(storageKey, JSON.stringify(posts)), [posts])
   useEffect(() => saveProfile(profile), [profile])
@@ -104,12 +107,14 @@ export default function App() {
     setPosts((current) => current.map((item) => item.id === post.id ? { ...item, status: item.status === "idea" ? "ready" : "idea", updatedAt: "Just now" } : item))
   }
 
-  function deletePost(id: string) {
-    setPosts((current) => current.filter((post) => post.id !== id))
+  function updatePost(draft: PostDraft) {
+    if (!editingPost) return
+    setPosts((current) => current.map((post) => post.id === editingPost.id ? { ...post, title: draft.title, content: draft.content, updatedAt: "Just now" } : post))
+    setEditingPost(null)
   }
 
-  function handleProfileChange(next: BusinessProfile) {
-    setProfile(next)
+  function deletePost(id: string) {
+    setPosts((current) => current.filter((post) => post.id !== id))
   }
 
   function handleWebsiteLoaded(url: string, pages: CrawlPage[]) {
@@ -140,7 +145,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b border-black/[0.06] bg-background/90 px-5 backdrop-blur md:px-8">
-        <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between">
+        <div className="mx-auto flex min-h-16 max-w-[1500px] flex-wrap items-center justify-between gap-3 py-3 md:flex-nowrap md:py-0">
           <div className="flex items-center gap-3">
             <div className="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">V</div>
             <div>
@@ -148,13 +153,19 @@ export default function App() {
               <div className="text-[11px] text-muted-foreground">Content workspace</div>
             </div>
           </div>
-          <BusinessChip profile={profile} onProfileChange={handleProfileChange} />
+          <BusinessChip profile={profile} onLoadContext={websiteCrawl.start} loading={websiteCrawl.status === "crawling"} />
           <Button variant="ghost" size="icon" aria-label="Settings"><Settings2 className="size-4" /></Button>
         </div>
       </header>
 
       <main className="mx-auto max-w-[1500px] space-y-5 px-5 py-8 md:px-8 md:py-10">
-        <WebsiteContext onContextLoaded={handleWebsiteLoaded} />
+        <WebsiteContext
+          status={websiteCrawl.status}
+          progress={websiteCrawl.progress}
+          context={websiteCrawl.context}
+          error={websiteCrawl.error}
+          onReset={websiteCrawl.reset}
+        />
 
         <CoveragePanel
           profile={profile}
@@ -231,6 +242,7 @@ export default function App() {
                                 key={post.id}
                                 post={post}
                                 onMove={() => (post.status === "idea" ? setPreparingPost(post) : movePost(post))}
+                                onEdit={() => setEditingPost(post)}
                                 onDelete={() => deletePost(post.id)}
                               />
                             ))}
@@ -331,6 +343,18 @@ export default function App() {
           defaultContentType={dialogContentType}
           platformOptions={platforms}
           onSave={addPost}
+        />
+      )}
+
+      {editingPost && (
+        <PostDialog
+          key={editingPost.id}
+          open
+          onOpenChange={(open) => { if (!open) setEditingPost(null) }}
+          defaultPlatform={editingPost.platform}
+          platformOptions={platforms}
+          post={editingPost}
+          onSave={updatePost}
         />
       )}
 

@@ -4,56 +4,50 @@ import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { VERTICAL_META } from "@/data/playbooks"
-import { analyzeBusinessFromUrl } from "@/lib/analyzeBusiness"
 import type { BusinessProfile } from "@/types"
 
 export function BusinessChip({
   profile,
-  onProfileChange,
+  onLoadContext,
+  loading,
 }: {
   profile: BusinessProfile
-  onProfileChange: (profile: BusinessProfile) => void
+  onLoadContext: (url: string) => Promise<string>
+  loading: boolean
 }) {
   const [editing, setEditing] = useState(false)
   const [url, setUrl] = useState(profile.url)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const vertical = VERTICAL_META[profile.vertical]
 
   async function handleAnalyze(event: React.FormEvent) {
     event.preventDefault()
-    setLoading(true)
-    setError(null)
     try {
-      const next = await analyzeBusinessFromUrl(url)
-      onProfileChange(next)
+      const normalizedUrl = await onLoadContext(url)
+      setUrl(normalizedUrl)
       setEditing(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not analyze that URL")
-    } finally {
-      setLoading(false)
+    } catch {
+      // The context panel shows the actionable crawl error.
     }
   }
 
   if (editing) {
     return (
-      <form onSubmit={handleAnalyze} className="hidden items-center gap-2 md:flex">
+      <form onSubmit={handleAnalyze} className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
         <input
           autoFocus
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://yourcompany.com"
-          className="h-9 w-56 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20"
+          className="h-9 min-w-0 flex-1 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20 md:w-56 md:flex-none"
           disabled={loading}
         />
         <Button type="submit" size="sm" disabled={loading || !url.trim()}>
           {loading ? <LoaderCircle className="size-3.5 animate-spin" /> : null}
-          {loading ? "Analyzing…" : "Analyze"}
+          {loading ? "Loading…" : "Load context"}
         </Button>
-        <Button type="button" variant="ghost" size="sm" disabled={loading} onClick={() => { setEditing(false); setError(null) }}>
+        <Button type="button" variant="ghost" size="sm" disabled={loading} onClick={() => setEditing(false)}>
           Cancel
         </Button>
-        {error && <span className="max-w-48 truncate text-xs text-red-600" title={error}>{error}</span>}
       </form>
     )
   }
@@ -62,8 +56,8 @@ export function BusinessChip({
     <button
       type="button"
       onClick={() => { setUrl(profile.url); setEditing(true) }}
-      className="hidden items-center gap-2 rounded-full border bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-foreground/20 md:flex"
-      title={`${profile.url} · ${vertical.description}${profile.summary ? ` · ${profile.summary}` : ""} · Click to analyze a URL`}
+      className="flex items-center gap-2 rounded-full border bg-white py-1 pl-1 pr-3 shadow-sm transition hover:border-foreground/20"
+      title={`${profile.url} · ${vertical.description}${profile.summary ? ` · ${profile.summary}` : ""} · Click to load website context`}
     >
       <span className="grid size-7 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
         {profile.companyName.charAt(0)}
