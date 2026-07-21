@@ -7,6 +7,7 @@ export const seedPosts: Post[] = [
     status: "idea",
     title: "What we learned shipping v1",
     content: "A transparent look at the three decisions that helped us launch faster.",
+    contentType: "thought_leadership",
     updatedAt: "Today",
   },
   {
@@ -15,6 +16,7 @@ export const seedPosts: Post[] = [
     status: "ready",
     title: "The case for smaller launches",
     content: "Big launches create pressure. Small launches create feedback loops.",
+    contentType: "thought_leadership",
     updatedAt: "2h ago",
   },
   {
@@ -23,6 +25,7 @@ export const seedPosts: Post[] = [
     status: "idea",
     title: "Build in public thread",
     content: "5 observations from turning a rough workflow into a real product.",
+    contentType: "educational",
     updatedAt: "Yesterday",
   },
   {
@@ -31,6 +34,7 @@ export const seedPosts: Post[] = [
     status: "idea",
     title: "Product insight",
     content: "Your MVP does not need more features. It needs a clearer promise.",
+    contentType: "educational",
     updatedAt: "3h ago",
   },
   {
@@ -39,6 +43,7 @@ export const seedPosts: Post[] = [
     status: "idea",
     title: "Behind the scenes carousel",
     content: "From sketch to shipped: seven slides showing the real process.",
+    contentType: "ugc",
     updatedAt: "Monday",
   },
   {
@@ -47,6 +52,7 @@ export const seedPosts: Post[] = [
     status: "ready",
     title: "Weekly progress recap",
     content: "A simple visual recap of what moved forward this week.",
+    contentType: "ugc",
     updatedAt: "1h ago",
   },
 ]
