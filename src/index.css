@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #f5f6f2;
+  --color-foreground: #18221c;
+  --color-card: #ffffff;
+  --color-card-foreground: #18221c;
+  --color-primary: #173f31;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #eef1ec;
+  --color-secondary-foreground: #34443a;
+  --color-muted: #eef1ec;
+  --color-muted-foreground: #69766e;
+  --color-border: #dde2dc;
+  --color-ring: #2c6b51;
+  --font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fade-in-up .35s ease-out both; }
