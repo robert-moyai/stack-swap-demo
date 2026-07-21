@@ -1,26 +1,27 @@
 import { ArrowUpRight, Check, ChevronDown, CirclePlus, Lightbulb, Plus, Search, Settings2, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
+import { BusinessChip } from "@/components/BusinessChip"
+import { CoveragePanel } from "@/components/CoveragePanel"
 import { PostCard } from "@/components/PostCard"
 import { PostDialog } from "@/components/PostDialog"
-import { WebsiteContext } from "@/components/WebsiteContext"
+import { WebsiteContext, type CrawlPage } from "@/components/WebsiteContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  customPlatformConfig,
+  loadPlatforms,
+  platformConfigFor,
+  platformsStorageKey,
+  type PlatformConfig,
+} from "@/data/platforms"
+import { loadProfile, saveProfile } from "@/data/profile"
 import { seedPosts } from "@/data/seed"
-import type { Platform, PlatformOption, Post, PostDraft, PostStatus } from "@/types"
+import { computeCoverage } from "@/lib/coverage"
+import { profileFromCrawl } from "@/lib/profileFromCrawl"
+import type { BusinessProfile, ContentType, Platform, PlatformId, Post, PostDraft, PostStatus } from "@/types"
 
 const storageKey = "postflow-posts-v1"
-const platformsStorageKey = "postflow-platforms-v1"
-
-type PlatformConfig = PlatformOption & { short: string; color: string; bestPractices: string[] }
-
-const defaultPlatforms: PlatformConfig[] = [
-  { id: "linkedin", name: "LinkedIn", short: "in", color: "bg-[#e8f3ff] text-[#0a66c2]", bestPractices: ["Lead with a strong first line before the “see more” break.", "Use short paragraphs and whitespace for easy scanning.", "Share a clear point of view, lesson, or practical takeaway.", "End with one focused question or call to action."] },
-  { id: "x", name: "X / Twitter", short: "X", color: "bg-[#eceeed] text-[#111]", bestPractices: ["Make the first sentence useful enough to stand alone.", "Keep each post focused on one idea.", "Use threads only when every post adds meaningful context.", "Invite replies with a specific, easy-to-answer prompt."] },
-  { id: "instagram", name: "Instagram", short: "◎", color: "bg-[#fff0f3] text-[#c13584]", bestPractices: ["Pair every caption with a strong visual hook.", "Put the most important message in the opening lines.", "Use a clear caption structure: hook, value, action.", "Choose a small set of highly relevant hashtags."] },
-]
-
-const genericBestPractices = ["Lead with one clear message.", "Adapt the format and tone to the platform’s audience.", "Make the post easy to scan and act on.", "Review performance and repeat what resonates."]
 
 const columns: { status: PostStatus; label: string; icon: typeof Lightbulb }[] = [
   { status: "idea", label: "Ideas", icon: Lightbulb },
@@ -36,38 +37,55 @@ function loadPosts() {
   }
 }
 
-function loadPlatforms() {
-  try {
-    const saved = localStorage.getItem(platformsStorageKey)
-    return saved ? (JSON.parse(saved) as PlatformConfig[]) : defaultPlatforms
-  } catch {
-    return defaultPlatforms
-  }
-}
-
 export default function App() {
   const [posts, setPosts] = useState<Post[]>(loadPosts)
+  const [profile, setProfile] = useState(loadProfile)
+  const [platforms, setPlatforms] = useState<PlatformConfig[]>(loadPlatforms)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [dialogPlatform, setDialogPlatform] = useState<Platform>("linkedin")
-  const [platforms, setPlatforms] = useState<PlatformConfig[]>(loadPlatforms)
+  const [dialogPlatform, setDialogPlatform] = useState<Platform>(platforms[0]?.id ?? "linkedin")
+  const [dialogContentType, setDialogContentType] = useState<ContentType | undefined>(undefined)
   const [addingPlatform, setAddingPlatform] = useState(false)
   const [newPlatformName, setNewPlatformName] = useState("")
 
   useEffect(() => localStorage.setItem(storageKey, JSON.stringify(posts)), [posts])
+  useEffect(() => saveProfile(profile), [profile])
   useEffect(() => localStorage.setItem(platformsStorageKey, JSON.stringify(platforms)), [platforms])
+
+  const enabledPlatformIds = useMemo(() => platforms.map((platform) => platform.id), [platforms])
+
+  const coverage = useMemo(
+    () => computeCoverage(profile.vertical, posts, enabledPlatformIds),
+    [profile.vertical, posts, enabledPlatformIds],
+  )
 
   const filteredPosts = useMemo(() => {
     const term = search.toLowerCase().trim()
     return term ? posts.filter((post) => `${post.title} ${post.content}`.toLowerCase().includes(term)) : posts
   }, [posts, search])
 
-  function openCreate(platform: Platform = "linkedin") {
+  function openCreate(platform: Platform = platforms[0]?.id ?? "linkedin", contentType?: ContentType) {
     setDialogPlatform(platform)
+    setDialogContentType(contentType)
     setDialogOpen(true)
   }
 
+  function enableKnownPlatform(platform: PlatformId) {
+    setPlatforms((current) => {
+      if (current.some((item) => item.id === platform)) return current
+      return [...current, platformConfigFor(platform)]
+    })
+  }
+
+  function handleAddIdea(platform: PlatformId, contentType: ContentType) {
+    enableKnownPlatform(platform)
+    openCreate(platform, contentType)
+  }
+
   function addPost(draft: PostDraft) {
+    if (!platforms.some((item) => item.id === draft.platform)) {
+      setPlatforms((current) => [...current, customPlatformConfig(draft.platform)])
+    }
     setPosts((current) => [{ ...draft, id: crypto.randomUUID(), updatedAt: "Just now" }, ...current])
   }
 
@@ -79,12 +97,20 @@ export default function App() {
     setPosts((current) => current.filter((post) => post.id !== id))
   }
 
+  function handleProfileChange(next: BusinessProfile) {
+    setProfile(next)
+  }
+
+  function handleWebsiteLoaded(url: string, pages: CrawlPage[]) {
+    setProfile(profileFromCrawl(url, pages))
+  }
+
   function addPlatform() {
     const name = newPlatformName.trim()
     if (!name) return
-    const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "platform"
-    if (platforms.some((platform) => platform.id === baseId || platform.name.toLowerCase() === name.toLowerCase())) return
-    setPlatforms((current) => [...current, { id: baseId, name, short: name.slice(0, 2).toUpperCase(), color: "bg-[#eef1ec] text-[#34443a]", bestPractices: genericBestPractices }])
+    const next = customPlatformConfig(name)
+    if (platforms.some((platform) => platform.id === next.id || platform.name.toLowerCase() === name.toLowerCase())) return
+    setPlatforms((current) => [...current, next])
     setNewPlatformName("")
     setAddingPlatform(false)
   }
@@ -100,16 +126,13 @@ export default function App() {
               <div className="text-[11px] text-muted-foreground">Content workspace</div>
             </div>
           </div>
-          <div className="hidden items-center gap-1 rounded-lg border bg-white p-1 shadow-sm md:flex">
-            <Button variant="ghost" size="sm" className="bg-muted">Board</Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">Analytics</Button>
-          </div>
+          <BusinessChip profile={profile} onProfileChange={handleProfileChange} />
           <Button variant="ghost" size="icon" aria-label="Settings"><Settings2 className="size-4" /></Button>
         </div>
       </header>
 
       <main className="mx-auto max-w-[1500px] px-5 py-8 md:px-8 md:py-10">
-        <WebsiteContext />
+        <WebsiteContext onContextLoaded={handleWebsiteLoaded} />
 
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
@@ -126,7 +149,17 @@ export default function App() {
           </div>
         </div>
 
-        <div className="mt-8 space-y-5">
+        <div className="mt-8">
+          <CoveragePanel
+            profile={profile}
+            coverage={coverage}
+            enabledPlatforms={enabledPlatformIds}
+            onAddIdea={handleAddIdea}
+            onAddPlatform={enableKnownPlatform}
+          />
+        </div>
+
+        <div className="mt-6 space-y-5">
           {platforms.map((meta, platformIndex) => {
             const platform = meta.id
             const platformPosts = filteredPosts.filter((post) => post.platform === platform)
@@ -173,7 +206,12 @@ export default function App() {
                     <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
                   </summary>
                   <div className="grid gap-2 border-t border-black/[0.05] px-5 py-4 sm:grid-cols-2">
-                    {meta.bestPractices.map((practice) => <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground"><Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" /><span>{practice}</span></div>)}
+                    {meta.bestPractices.map((practice) => (
+                      <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground">
+                        <Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
+                        <span>{practice}</span>
+                      </div>
+                    ))}
                   </div>
                 </details>
               </section>
@@ -184,20 +222,44 @@ export default function App() {
         <div className="mt-6">
           {addingPlatform ? (
             <div className="animate-in flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-white/50 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div><h3 className="text-sm font-semibold">Add another platform</h3><p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any channel you publish to.</p></div>
+              <div>
+                <h3 className="text-sm font-semibold">Add another platform</h3>
+                <p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any channel you publish to.</p>
+              </div>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <input autoFocus value={newPlatformName} onChange={(event) => setNewPlatformName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addPlatform() }} className="h-10 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20" placeholder="e.g. TikTok" />
+                <input
+                  autoFocus
+                  value={newPlatformName}
+                  onChange={(event) => setNewPlatformName(event.target.value)}
+                  onKeyDown={(event) => { if (event.key === "Enter") addPlatform() }}
+                  className="h-10 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20"
+                  placeholder="e.g. TikTok"
+                />
                 <Button onClick={addPlatform} disabled={!newPlatformName.trim()}>Add platform</Button>
                 <Button variant="ghost" onClick={() => { setAddingPlatform(false); setNewPlatformName("") }}>Cancel</Button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setAddingPlatform(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-white/30 py-5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-white hover:text-foreground"><Plus className="size-4" /> Add a platform</button>
+            <button
+              onClick={() => setAddingPlatform(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-white/30 py-5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-white hover:text-foreground"
+            >
+              <Plus className="size-4" /> Add a platform
+            </button>
           )}
         </div>
       </main>
 
-      {dialogOpen && <PostDialog open={dialogOpen} onOpenChange={setDialogOpen} defaultPlatform={dialogPlatform} onSave={addPost} platformOptions={platforms} />}
+      {dialogOpen && (
+        <PostDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          defaultPlatform={dialogPlatform}
+          defaultContentType={dialogContentType}
+          platformOptions={platforms}
+          onSave={addPost}
+        />
+      )}
     </div>
   )
 }

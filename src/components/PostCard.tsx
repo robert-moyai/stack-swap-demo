@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { CONTENT_TYPE_META } from "@/data/playbooks"
 import type { Post } from "@/types"
 
 export function PostCard({ post, onMove, onDelete }: { post: Post; onMove: () => void; onDelete: () => void }) {
@@ -11,7 +12,12 @@ export function PostCard({ post, onMove, onDelete }: { post: Post; onMove: () =>
     <Card className="group border-black/[0.07] bg-card transition hover:-translate-y-0.5 hover:shadow-md">
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
-          <Badge variant="secondary" className="bg-muted font-medium text-muted-foreground">{post.updatedAt}</Badge>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="secondary" className="bg-muted font-medium text-muted-foreground">{post.updatedAt}</Badge>
+            {post.contentType && (
+              <Badge variant="outline" className="font-medium">{CONTENT_TYPE_META[post.contentType].label}</Badge>
+            )}
+          </div>
           <div className="relative">
             <Button variant="ghost" size="icon" className="-mr-2 -mt-2 size-8 text-muted-foreground" aria-label="Delete post" onClick={onDelete} title="Delete post">
               <Trash2 className="size-4" />

@@ -3,31 +3,41 @@ import { X } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import type { Platform, PlatformOption, PostDraft, PostStatus } from "@/types"
+import { CONTENT_TYPE_META } from "@/data/playbooks"
+import { contentTypes } from "@/types"
+import type { ContentType, Platform, PlatformOption, PostDraft, PostStatus } from "@/types"
 
 export function PostDialog({
   open,
   onOpenChange,
   defaultPlatform,
-  onSave,
+  defaultContentType,
   platformOptions,
+  onSave,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultPlatform: Platform
-  onSave: (post: PostDraft) => void
+  defaultContentType?: ContentType
   platformOptions: PlatformOption[]
+  onSave: (post: PostDraft) => void
 }) {
   const [platform, setPlatform] = useState<Platform>(defaultPlatform)
   const [status, setStatus] = useState<PostStatus>("idea")
+  const [contentType, setContentType] = useState<ContentType | "">(defaultContentType ?? "")
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     if (!title.trim()) return
-    onSave({ platform, status, title: title.trim(), content: content.trim() })
+    onSave({
+      platform,
+      status,
+      title: title.trim(),
+      content: content.trim(),
+      contentType: contentType || undefined,
+    })
     onOpenChange(false)
   }
 
@@ -49,7 +59,7 @@ export function PostDialog({
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <label className="text-sm font-medium">Platform
-                <select className={inputClass} value={platform} onChange={(e) => setPlatform(e.target.value as Platform)}>
+                <select className={inputClass} value={platform} onChange={(e) => setPlatform(e.target.value)}>
                   {platformOptions.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
                 </select>
               </label>
@@ -60,6 +70,12 @@ export function PostDialog({
                 </select>
               </label>
             </div>
+            <label className="block text-sm font-medium">Content type
+              <select className={inputClass} value={contentType} onChange={(e) => setContentType(e.target.value as ContentType | "")}>
+                <option value="">No type</option>
+                {contentTypes.map((value) => <option key={value} value={value}>{CONTENT_TYPE_META[value].label}</option>)}
+              </select>
+            </label>
             <label className="block text-sm font-medium">Title
               <input autoFocus className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give the post a working title" />
             </label>

@@ -1,8 +1,10 @@
 import path from "node:path"
+import type { IncomingMessage, ServerResponse } from "node:http"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
-import type { IncomingMessage, ServerResponse } from "node:http"
 import { defineConfig, loadEnv, type Plugin } from "vite"
+
+import { handleAnalyzeBusiness } from "./server/analyzeBusiness"
 
 const FIRECRAWL_API = "https://api.firecrawl.dev/v2"
 
@@ -18,7 +20,8 @@ async function readBody(request: IncomingMessage) {
   return JSON.parse(Buffer.concat(chunks).toString() || "{}") as { url?: string }
 }
 
-function firecrawlProxy(apiKey: string): Plugin {
+/** Full-site crawl proxy used by WebsiteContext onboarding. */
+function firecrawlCrawlProxy(apiKey: string): Plugin {
   return {
     name: "firecrawl-api-proxy",
     configureServer(server) {
@@ -27,7 +30,9 @@ function firecrawlProxy(apiKey: string): Plugin {
         if (!requestUrl.startsWith("/api/firecrawl/crawl")) return next()
 
         if (!apiKey) {
-          return sendJson(response, 500, { message: "FIRECRAWL_API_KEY is missing. Add it to your .env file and restart the dev server." })
+          return sendJson(response, 500, {
+            message: "FIRECRAWL_API_KEY is missing. Add it to your .env file and restart the dev server.",
+          })
         }
 
         try {
@@ -57,7 +62,7 @@ function firecrawlProxy(apiKey: string): Plugin {
             "Content-Type": "application/json",
           }
           const upstream = await fetch(firecrawlUrl, { method, headers, body })
-          const result = await upstream.json() as {
+          const result = (await upstream.json()) as {
             status?: string
             data?: unknown[]
             next?: string | null
@@ -71,7 +76,7 @@ function firecrawlProxy(apiKey: string): Plugin {
             while (next) {
               const pageResponse = await fetch(next, { headers })
               if (!pageResponse.ok) break
-              const page = await pageResponse.json() as { data?: unknown[]; next?: string | null }
+              const page = (await pageResponse.json()) as { data?: unknown[]; next?: string | null }
               allPages.push(...(page.data ?? []))
               next = page.next
             }
@@ -81,7 +86,26 @@ function firecrawlProxy(apiKey: string): Plugin {
 
           sendJson(response, upstream.status, result)
         } catch (error) {
-          sendJson(response, 500, { message: error instanceof Error ? error.message : "Firecrawl request failed." })
+          sendJson(response, 500, {
+            message: error instanceof Error ? error.message : "Firecrawl request failed.",
+          })
+        }
+      })
+    },
+  }
+}
+
+/** Single-URL scrape + vertical extraction used by the business chip / coverage profile. */
+function firecrawlAnalyzePlugin(): Plugin {
+  return {
+    name: "vsbl-firecrawl-analyze",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          const handled = await handleAnalyzeBusiness(req, res)
+          if (!handled) next()
+        } catch (error) {
+          next(error)
         }
       })
     },
@@ -90,9 +114,13 @@ function firecrawlProxy(apiKey: string): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
+  if (env.FIRECRAWL_API_KEY) process.env.FIRECRAWL_API_KEY = env.FIRECRAWL_API_KEY
+  if (env.firecrawl_api_key) process.env.firecrawl_api_key = env.firecrawl_api_key
+
+  const apiKey = env.FIRECRAWL_API_KEY || env.firecrawl_api_key || ""
 
   return {
-    plugins: [react(), tailwindcss(), firecrawlProxy(env.FIRECRAWL_API_KEY)],
+    plugins: [react(), tailwindcss(), firecrawlCrawlProxy(apiKey), firecrawlAnalyzePlugin()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

@@ -4,7 +4,10 @@ import { FormEvent, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 
-type CrawlPage = { markdown?: string; metadata?: { title?: string; sourceURL?: string; url?: string } }
+export type CrawlPage = {
+  markdown?: string
+  metadata?: { title?: string; description?: string; sourceURL?: string; url?: string }
+}
 type CrawlStatus = { status: "scraping" | "completed" | "failed" | "cancelled"; completed?: number; total?: number; data?: CrawlPage[]; error?: string }
 type LoadedContext = { url: string; pages: number; fileName: string; size: string; downloadUrl: string }
 
@@ -24,7 +27,12 @@ function formatBytes(bytes: number) {
   return bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-export function WebsiteContext() {
+export function WebsiteContext({
+  onContextLoaded,
+}: {
+  /** Called with crawl pages so coverage can infer vertical without a second API call. */
+  onContextLoaded?: (url: string, pages: CrawlPage[]) => void
+} = {}) {
   const [url, setUrl] = useState("")
   const [status, setStatus] = useState<"idle" | "crawling" | "loaded" | "error">("idle")
   const [progress, setProgress] = useState({ completed: 0, total: 0 })
@@ -77,6 +85,7 @@ export function WebsiteContext() {
       const fileName = `${new URL(sourceUrl).hostname.replace(/^www\./, "")}-context.zip`
       setContext({ url: sourceUrl, pages: pages.length, fileName, size: formatBytes(blob.size), downloadUrl: downloadUrl.current })
       setStatus("loaded")
+      onContextLoaded?.(sourceUrl, pages)
     } catch (caught) {
       setStatus("error")
       setError(caught instanceof Error ? caught.message : "The website could not be loaded.")
