@@ -1,8 +1,10 @@
-import { Plus, Sparkles, Target, TrendingUp, Users } from "lucide-react"
+import { Plus, Sparkles, Target, TrendingUp } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CONTENT_TYPE_META, PLATFORM_META, VERTICAL_META } from "@/data/playbooks"
+import { NestedCollapsible, SectionCard } from "@/components/ui/section"
 import { exemplarsForVertical } from "@/data/exemplars"
+import { CONTENT_TYPE_META, PLATFORM_META, VERTICAL_META } from "@/data/playbooks"
 import type { CoverageResult, CoverageStatus } from "@/lib/coverage"
 import type { BusinessProfile, ContentType, Platform, PlatformId, Score } from "@/types"
 
@@ -21,10 +23,7 @@ function ScoreDots({ score }: { score: Score }) {
   return (
     <span className="flex items-center gap-1" aria-label={`Priority ${score} of 3`}>
       {[1, 2, 3].map((level) => (
-        <span
-          key={level}
-          className={`size-1.5 rounded-full ${level <= score ? "bg-primary" : "bg-border"}`}
-        />
+        <span key={level} className={`size-1.5 rounded-full ${level <= score ? "bg-primary" : "bg-border"}`} />
       ))}
     </span>
   )
@@ -55,20 +54,23 @@ export function CoveragePanel({
   const platformRows = coverage.platforms.filter((row) => row.score > 0 || row.count > 0)
   const contentRows = coverage.contentTypes.filter((row) => row.score > 0 || row.count > 0)
   const exemplars = exemplarsForVertical(profile.vertical)
+  const missingCount = coverage.gaps.length
+  const coveredPlatforms = platformRows.filter((row) => row.status === "covered").length
 
   return (
-    <section className="animate-in overflow-hidden rounded-2xl border border-black/[0.07] bg-white/70 shadow-[0_1px_2px_rgba(24,34,28,0.03)]">
-      <div className="flex flex-col gap-1 border-b border-black/[0.06] px-5 py-4 md:px-6">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-          <Sparkles className="size-3.5" /> Recommended for {vertical.label}
-        </div>
-        <h2 className="text-lg font-semibold tracking-tight">Where your presence should be</h2>
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Based on what works for {vertical.label.toLowerCase()} businesses like {profile.companyName}. Close the gaps
-          below to stop leaving reach on the table.
-        </p>
-      </div>
-
+    <SectionCard
+      title="Coverage & recommendations"
+      description={`What works for ${vertical.label.toLowerCase()} · ${profile.companyName}`}
+      icon={<Sparkles className="size-4" />}
+      badge={
+        missingCount > 0 ? (
+          <Badge variant="secondary" className="text-[11px]">{missingCount} gaps</Badge>
+        ) : (
+          <Badge variant="secondary" className="text-[11px]">{coveredPlatforms} covered</Badge>
+        )
+      }
+      defaultOpen
+    >
       <div className="grid gap-px bg-black/[0.06] md:grid-cols-2">
         <div className="bg-white/70 p-5 md:p-6">
           <div className="mb-4 flex items-center gap-2">
@@ -93,7 +95,7 @@ export function CoveragePanel({
                   </div>
                   {canAdd ? (
                     <Button variant="outline" size="sm" onClick={() => onAddPlatform(row.platform)}>
-                      <Plus className="size-3.5" /> Add to board
+                      <Plus className="size-3.5" /> Add
                     </Button>
                   ) : (
                     <StatusPill status={row.status} />
@@ -131,17 +133,40 @@ export function CoveragePanel({
         </div>
       </div>
 
-      {exemplars.length > 0 && (
-        <div className="border-t border-black/[0.06] p-5 md:p-6">
-          <div className="mb-1 flex items-center gap-2">
-            <Users className="size-4 text-muted-foreground" />
-            <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Who wins here — and how
-            </h3>
+      {coverage.gaps.length > 0 && (
+        <NestedCollapsible title="Gaps worth closing" count={coverage.gaps.length} defaultOpen>
+          <div className="grid gap-3 md:grid-cols-2">
+            {coverage.gaps.map((gap) => {
+              const platformMeta = PLATFORM_META[gap.platform]
+              const contentMeta = CONTENT_TYPE_META[gap.contentType]
+              return (
+                <div
+                  key={`${gap.platform}-${gap.contentType}`}
+                  className="flex items-center gap-3 rounded-xl border border-black/[0.07] bg-white p-3.5 transition hover:border-foreground/15"
+                >
+                  <PlatformBadge platform={gap.platform} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">
+                      {contentMeta.label} on {platformMeta.name}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {gap.platformMissing ? "Not on your board yet" : "Nothing planned here yet"}
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={() => onAddIdea(gap.platform, gap.contentType)}>
+                    <Plus className="size-3.5" /> Add idea
+                  </Button>
+                </div>
+              )
+            })}
           </div>
+        </NestedCollapsible>
+      )}
+
+      {exemplars.length > 0 && (
+        <NestedCollapsible title="Who wins here — and how" count={exemplars.length} defaultOpen={false}>
           <p className="mb-4 text-xs leading-5 text-muted-foreground">
-            Category exemplars for {vertical.label.toLowerCase()}, not a scrape of your exact competitors. Use them as
-            the playbook for each channel.
+            Category exemplars for {vertical.label.toLowerCase()}, not a scrape of your exact competitors.
           </p>
           <div className="grid gap-3 lg:grid-cols-3">
             {exemplars.map(({ platform, exemplar }) => {
@@ -149,7 +174,7 @@ export function CoveragePanel({
               const primaryType = exemplar.contentTypes[0]
               const canAdd = !enabled.has(platform)
               return (
-                <div key={platform} className="flex flex-col rounded-xl border border-black/[0.07] bg-white p-4">
+                <div key={platform} className="flex flex-col rounded-xl border border-black/[0.07] bg-white p-4 transition hover:border-foreground/15">
                   <div className="flex items-center gap-2.5">
                     <PlatformBadge platform={platform} />
                     <div className="min-w-0">
@@ -171,12 +196,12 @@ export function CoveragePanel({
                   <div className="mt-auto flex gap-2 pt-4">
                     {canAdd && (
                       <Button variant="outline" size="sm" onClick={() => onAddPlatform(platform)}>
-                        <Plus className="size-3.5" /> Add platform
+                        <Plus className="size-3.5" /> Add
                       </Button>
                     )}
                     {primaryType && (
                       <Button size="sm" onClick={() => onAddIdea(platform, primaryType)}>
-                        <Plus className="size-3.5" /> Try this play
+                        <Plus className="size-3.5" /> Try play
                       </Button>
                     )}
                   </div>
@@ -184,46 +209,8 @@ export function CoveragePanel({
               )
             })}
           </div>
-        </div>
+        </NestedCollapsible>
       )}
-
-      {coverage.gaps.length > 0 && (
-        <div className="border-t border-black/[0.06] p-5 md:p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Gaps worth closing
-            </h3>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-              {coverage.gaps.length}
-            </span>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {coverage.gaps.map((gap) => {
-              const platformMeta = PLATFORM_META[gap.platform]
-              const contentMeta = CONTENT_TYPE_META[gap.contentType]
-              return (
-                <div
-                  key={`${gap.platform}-${gap.contentType}`}
-                  className="flex items-center gap-3 rounded-xl border border-black/[0.07] bg-white p-3.5"
-                >
-                  <PlatformBadge platform={gap.platform} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">
-                      {contentMeta.label} on {platformMeta.name}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {gap.platformMissing ? "Not on your board yet" : "Nothing planned here yet"}
-                    </div>
-                  </div>
-                  <Button size="sm" onClick={() => onAddIdea(gap.platform, gap.contentType)}>
-                    <Plus className="size-3.5" /> Add idea
-                  </Button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-    </section>
+    </SectionCard>
   )
 }

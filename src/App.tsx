@@ -9,6 +9,7 @@ import { PreparePostDialog } from "@/components/PreparePostDialog"
 import { WebsiteContext, type CrawlPage } from "@/components/WebsiteContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { getExemplar } from "@/data/exemplars"
 import {
   customPlatformConfig,
@@ -69,6 +70,10 @@ export default function App() {
     return term ? posts.filter((post) => `${post.title} ${post.content}`.toLowerCase().includes(term)) : posts
   }, [posts, search])
 
+  const preparingMeta = preparingPost
+    ? platforms.find((platform) => platform.id === preparingPost.platform)
+    : undefined
+
   function openCreate(platform: Platform = platforms[0]?.id ?? "linkedin", contentType?: ContentType) {
     setDialogPlatform(platform)
     setDialogContentType(contentType)
@@ -113,7 +118,11 @@ export default function App() {
 
   function completePreparedPost(content: string) {
     if (!preparingPost) return
-    setPosts((current) => current.map((post) => post.id === preparingPost.id ? { ...post, content, status: "ready", updatedAt: "Just now" } : post))
+    setPosts((current) =>
+      current.map((post) =>
+        post.id === preparingPost.id ? { ...post, content, status: "ready", updatedAt: "Just now" } : post,
+      ),
+    )
     setPreparingPost(null)
   }
 
@@ -143,119 +152,146 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1500px] px-5 py-8 md:px-8 md:py-10">
+      <main className="mx-auto max-w-[1500px] space-y-5 px-5 py-8 md:px-8 md:py-10">
         <WebsiteContext onContextLoaded={handleWebsiteLoaded} />
 
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-px w-6 bg-muted-foreground/50" /> Content pipeline</div>
-            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] md:text-4xl">Turn ideas into posts.</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Keep every platform moving, from the first spark to ready-to-publish copy.</p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 w-full rounded-lg border bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20 sm:w-56" placeholder="Search posts..." />
+        <CoveragePanel
+          profile={profile}
+          coverage={coverage}
+          enabledPlatforms={enabledPlatformIds}
+          onAddIdea={handleAddIdea}
+          onAddPlatform={enableKnownPlatform}
+        />
+
+        <section className="animate-in space-y-4" style={{ animationDelay: "80ms" }}>
+          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-black/[0.07] bg-white/55 px-5 py-5 md:flex-row md:items-end md:px-6">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                <span className="h-px w-6 bg-muted-foreground/50" /> Board
+              </div>
+              <h1 className="mt-2 text-2xl font-semibold tracking-[-0.035em] md:text-3xl">Turn ideas into posts.</h1>
+              <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">
+                Keep every platform moving, from the first spark to ready-to-publish copy.
+              </p>
             </div>
-            <Button onClick={() => openCreate()}><CirclePlus className="size-4" /> New post</Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-10 w-full rounded-lg border bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20 sm:w-56"
+                  placeholder="Search posts..."
+                />
+              </div>
+              <Button onClick={() => openCreate()}><CirclePlus className="size-4" /> New post</Button>
+            </div>
           </div>
-        </div>
 
-        <div className="mt-8">
-          <CoveragePanel
-            profile={profile}
-            coverage={coverage}
-            enabledPlatforms={enabledPlatformIds}
-            onAddIdea={handleAddIdea}
-            onAddPlatform={enableKnownPlatform}
-          />
-        </div>
-
-        <div className="mt-6 space-y-5">
-          {platforms.map((meta, platformIndex) => {
-            const platform = meta.id
-            const platformPosts = filteredPosts.filter((post) => post.platform === platform)
-            const exemplar = isPlatformId(platform) ? getExemplar(profile.vertical, platform) : undefined
-            return (
-              <section key={platform} className="animate-in overflow-hidden rounded-2xl border border-black/[0.07] bg-white/55 shadow-[0_1px_2px_rgba(24,34,28,0.03)]" style={{ animationDelay: `${platformIndex * 80}ms` }}>
-                <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`grid size-9 place-items-center rounded-xl text-sm font-bold ${meta.color}`}>{meta.short}</div>
-                    <div>
-                      <h2 className="text-sm font-semibold">{meta.name}</h2>
-                      <p className="text-xs text-muted-foreground">{platformPosts.length} {platformPosts.length === 1 ? "post" : "posts"} in pipeline</p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => openCreate(platform)}><CirclePlus className="size-4" /> Add idea</Button>
-                </div>
-
-                <div className="grid md:grid-cols-2">
-                  {columns.map(({ status, label, icon: Icon }, columnIndex) => {
-                    const columnPosts = platformPosts.filter((post) => post.status === status)
-                    return (
-                      <div key={status} className={`min-h-48 p-4 md:p-5 ${columnIndex === 0 ? "md:border-r md:border-black/[0.06]" : ""}`}>
-                        <div className="mb-4 flex items-center gap-2">
-                          <Icon className="size-4 text-muted-foreground" />
-                          <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</h3>
-                          <Badge variant="secondary" className="ml-1 min-w-6 justify-center px-1.5">{columnPosts.length}</Badge>
-                        </div>
-                        <div className="grid gap-3 xl:grid-cols-2">
-                          {columnPosts.map((post) => <PostCard key={post.id} post={post} onMove={() => post.status === "idea" ? setPreparingPost(post) : movePost(post)} onDelete={() => deletePost(post.id)} />)}
-                          {columnPosts.length === 0 && (
-                            <button onClick={() => openCreate(platform)} className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground transition hover:border-foreground/25 hover:bg-white">
-                              <ArrowUpRight className="mb-2 size-4" />
-                              {search ? "No matching posts" : status === "idea" ? "Add the next idea" : "Move an idea here"}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <details className="group border-t border-black/[0.06] bg-white/60">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3.5 text-xs font-semibold text-muted-foreground transition hover:bg-white [&::-webkit-details-marker]:hidden">
-                    <span className="flex items-center gap-2"><Sparkles className="size-3.5" /> Best practices for {meta.name}</span>
-                    <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="space-y-4 border-t border-black/[0.05] px-5 py-4">
-                    {exemplar && (
-                      <div className="rounded-xl border border-black/[0.06] bg-white p-3.5">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                          Who wins here
-                        </div>
-                        <div className="mt-1.5 text-xs font-medium text-foreground">
-                          {exemplar.brands.join(" · ")}
-                        </div>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{exemplar.play}</p>
-                        <p className="mt-2 text-[11px] leading-4 text-foreground/80">
-                          <span className="font-medium">Pattern:</span> {exemplar.pattern}
+          <div className="space-y-4">
+            {platforms.map((meta, platformIndex) => {
+              const platform = meta.id
+              const platformPosts = filteredPosts.filter((post) => post.platform === platform)
+              const exemplar = isPlatformId(platform) ? getExemplar(profile.vertical, platform) : undefined
+              return (
+                <section
+                  key={platform}
+                  className="animate-in overflow-hidden rounded-2xl border border-black/[0.07] bg-white/55 shadow-[0_1px_2px_rgba(24,34,28,0.03)]"
+                  style={{ animationDelay: `${120 + platformIndex * 60}ms` }}
+                >
+                  <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`grid size-9 place-items-center rounded-xl text-sm font-bold ${meta.color}`}>{meta.short}</div>
+                      <div>
+                        <h2 className="text-sm font-semibold">{meta.name}</h2>
+                        <p className="text-xs text-muted-foreground">
+                          {platformPosts.length} {platformPosts.length === 1 ? "post" : "posts"} in pipeline
                         </p>
-                        <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {exemplar.contentTypes.map((type) => (
-                            <span key={type} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                              {CONTENT_TYPE_META[type].label}
-                            </span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => openCreate(platform)}>
+                      <CirclePlus className="size-4" /> Add idea
+                    </Button>
+                  </div>
+
+                  <div className="grid md:grid-cols-2">
+                    {columns.map(({ status, label, icon: Icon }, columnIndex) => {
+                      const columnPosts = platformPosts.filter((post) => post.status === status)
+                      return (
+                        <div key={status} className={`min-h-40 p-4 md:p-5 ${columnIndex === 0 ? "md:border-r md:border-black/[0.06]" : ""}`}>
+                          <div className="mb-4 flex items-center gap-2">
+                            <Icon className="size-4 text-muted-foreground" />
+                            <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</h3>
+                            <Badge variant="secondary" className="ml-1 min-w-6 justify-center px-1.5">{columnPosts.length}</Badge>
+                          </div>
+                          <div className="grid gap-3 xl:grid-cols-2">
+                            {columnPosts.map((post) => (
+                              <PostCard
+                                key={post.id}
+                                post={post}
+                                onMove={() => (post.status === "idea" ? setPreparingPost(post) : movePost(post))}
+                                onDelete={() => deletePost(post.id)}
+                              />
+                            ))}
+                            {columnPosts.length === 0 && (
+                              <button
+                                onClick={() => openCreate(platform)}
+                                className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground transition hover:border-foreground/25 hover:bg-white"
+                              >
+                                <ArrowUpRight className="mb-2 size-4" />
+                                {search ? "No matching posts" : status === "idea" ? "Add the next idea" : "Move an idea here"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <Collapsible className="group/tips border-t border-black/[0.06] bg-white/60">
+                    <CollapsibleTrigger className="flex w-full cursor-pointer items-center justify-between px-5 py-3.5 text-xs font-semibold text-muted-foreground transition hover:bg-white">
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="size-3.5" /> Tips for {meta.name}
+                      </span>
+                      <ChevronDown className="size-4 transition-transform duration-200 group-data-[state=open]/tips:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="space-y-4 border-t border-black/[0.05] px-5 py-4">
+                        {exemplar && (
+                          <div className="rounded-xl border border-black/[0.06] bg-white p-3.5">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                              Who wins here
+                            </div>
+                            <div className="mt-1.5 text-xs font-medium text-foreground">{exemplar.brands.join(" · ")}</div>
+                            <p className="mt-2 text-xs leading-5 text-muted-foreground">{exemplar.play}</p>
+                            <p className="mt-2 text-[11px] leading-4 text-foreground/80">
+                              <span className="font-medium">Pattern:</span> {exemplar.pattern}
+                            </p>
+                            <div className="mt-2.5 flex flex-wrap gap-1.5">
+                              {exemplar.contentTypes.map((type) => (
+                                <span key={type} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                  {CONTENT_TYPE_META[type].label}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {meta.bestPractices.map((practice) => (
+                            <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground">
+                              <Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
+                              <span>{practice}</span>
+                            </div>
                           ))}
                         </div>
                       </div>
-                    )}
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {meta.bestPractices.map((practice) => (
-                        <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground">
-                          <Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
-                          <span>{practice}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </details>
-              </section>
-            )
-          })}
-        </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </section>
+              )
+            })}
+          </div>
 
-        <div className="mt-6">
           {addingPlatform ? (
             <div className="animate-in flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-white/50 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -278,18 +314,13 @@ export default function App() {
           ) : (
             <button
               onClick={() => setAddingPlatform(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-white/30 py-5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-white hover:text-foreground"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-white/30 py-4 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-white hover:text-foreground"
             >
               <Plus className="size-4" /> Add a platform
             </button>
           )}
-        </div>
+        </section>
       </main>
-
-      {preparingPost && (() => {
-        const platform = platforms.find((item) => item.id === preparingPost.platform) ?? customPlatformConfig(preparingPost.platform)
-        return <PreparePostDialog open onOpenChange={(open) => { if (!open) setPreparingPost(null) }} post={preparingPost} platformName={platform.name} bestPractices={platform.bestPractices} contextPages={contextPages} onComplete={completePreparedPost} />
-      })()}
 
       {dialogOpen && (
         <PostDialog
@@ -299,6 +330,18 @@ export default function App() {
           defaultContentType={dialogContentType}
           platformOptions={platforms}
           onSave={addPost}
+        />
+      )}
+
+      {preparingPost && preparingMeta && (
+        <PreparePostDialog
+          open
+          onOpenChange={(open) => { if (!open) setPreparingPost(null) }}
+          post={preparingPost}
+          platformName={preparingMeta.name}
+          bestPractices={preparingMeta.bestPractices}
+          contextPages={contextPages}
+          onComplete={completePreparedPost}
         />
       )}
     </div>
