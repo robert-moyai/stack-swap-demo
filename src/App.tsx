@@ -24,11 +24,11 @@ import { computeCoverage } from "@/lib/coverage"
 import { profileFromCrawl } from "@/lib/profileFromCrawl"
 import { isPlatformId, type BusinessProfile, type ContentType, type Platform, type PlatformId, type Post, type PostDraft, type PostStatus } from "@/types"
 
-const storageKey = "postflow-posts-v1"
+const storageKey = "visible-todos-v1"
 
 const columns: { status: PostStatus; label: string; icon: typeof Lightbulb }[] = [
   { status: "idea", label: "Ideas", icon: Lightbulb },
-  { status: "ready", label: "Ready to post", icon: Check },
+  { status: "ready", label: "Ready", icon: Check },
 ]
 
 function loadPosts() {
@@ -135,7 +135,7 @@ export default function App() {
             <div className="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">V</div>
             <div>
               <div className="font-semibold leading-tight">VSBL</div>
-              <div className="text-[11px] text-muted-foreground">Content workspace</div>
+              <div className="text-[11px] text-muted-foreground">Visibility workspace</div>
             </div>
           </div>
           <BusinessChip profile={profile} onProfileChange={handleProfileChange} />
@@ -148,16 +148,16 @@ export default function App() {
 
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-px w-6 bg-muted-foreground/50" /> Content pipeline</div>
-            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] md:text-4xl">Turn ideas into posts.</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Keep every platform moving, from the first spark to ready-to-publish copy.</p>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-px w-6 bg-muted-foreground/50" /> Visibility pipeline</div>
+            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] md:text-4xl">Turn platform gaps into visibility wins.</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">Track the platforms that shape AI visibility, reviews, reputation, and ranking.</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 w-full rounded-lg border bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20 sm:w-56" placeholder="Search posts..." />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} className="h-10 w-full rounded-lg border bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20 sm:w-56" placeholder="Search to-dos..." />
             </div>
-            <Button onClick={() => openCreate()}><CirclePlus className="size-4" /> New post</Button>
+            <Button onClick={() => openCreate()}><CirclePlus className="size-4" /> New to-do</Button>
           </div>
         </div>
 
@@ -183,10 +183,10 @@ export default function App() {
                     <div className={`grid size-9 place-items-center rounded-xl text-sm font-bold ${meta.color}`}>{meta.short}</div>
                     <div>
                       <h2 className="text-sm font-semibold">{meta.name}</h2>
-                      <p className="text-xs text-muted-foreground">{platformPosts.length} {platformPosts.length === 1 ? "post" : "posts"} in pipeline</p>
+                      <p className="text-xs text-muted-foreground">{platformPosts.length} {platformPosts.length === 1 ? "to-do" : "to-dos"} in pipeline</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => openCreate(platform)}><CirclePlus className="size-4" /> Add idea</Button>
+                  <Button variant="ghost" size="sm" onClick={() => openCreate(platform)}><CirclePlus className="size-4" /> Add to-do</Button>
                 </div>
 
                 <div className="grid md:grid-cols-2">
@@ -204,7 +204,7 @@ export default function App() {
                           {columnPosts.length === 0 && (
                             <button onClick={() => openCreate(platform)} className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground transition hover:border-foreground/25 hover:bg-white">
                               <ArrowUpRight className="mb-2 size-4" />
-                              {search ? "No matching posts" : status === "idea" ? "Add the next idea" : "Move an idea here"}
+                              {search ? "No matching to-dos" : status === "idea" ? "Add the next to-do" : "Move a to-do here"}
                             </button>
                           )}
                         </div>
@@ -213,18 +213,31 @@ export default function App() {
                   })}
                 </div>
 
-                <details className="group border-t border-black/[0.06] bg-white/60">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3.5 text-xs font-semibold text-muted-foreground transition hover:bg-white [&::-webkit-details-marker]:hidden">
-                    <span className="flex items-center gap-2"><Sparkles className="size-3.5" /> Best practices for {meta.name}</span>
-                    <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+                <details open className="group border-t border-black/[0.06] bg-[#f7faf5]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-foreground transition hover:bg-white/70 [&::-webkit-details-marker]:hidden">
+                    <span className="flex items-center gap-3">
+                      <span className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <Sparkles className="size-4" />
+                      </span>
+                      <span>
+                        <span className="block leading-tight">Visibility playbook</span>
+                        <span className="mt-0.5 block text-xs font-normal text-muted-foreground">Best practices for {meta.name}</span>
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="rounded-full border border-black/[0.08] bg-white px-2.5 py-1 text-[11px] font-semibold text-muted-foreground shadow-sm">
+                        {meta.bestPractices.length} checks
+                      </span>
+                      <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                    </span>
                   </summary>
-                  <div className="space-y-4 border-t border-black/[0.05] px-5 py-4">
+                  <div className="space-y-4 border-t border-black/[0.05] px-5 pb-5 pt-4">
                     {exemplar && (
-                      <div className="rounded-xl border border-black/[0.06] bg-white p-3.5">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      <div className="rounded-xl border border-black/[0.07] bg-white p-4 shadow-[0_1px_2px_rgba(24,34,28,0.04)]">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
                           Who wins here
                         </div>
-                        <div className="mt-1.5 text-xs font-medium text-foreground">
+                        <div className="mt-1.5 text-sm font-semibold text-foreground">
                           {exemplar.brands.join(" · ")}
                         </div>
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">{exemplar.play}</p>
@@ -240,10 +253,12 @@ export default function App() {
                         </div>
                       </div>
                     )}
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-2.5 sm:grid-cols-2">
                       {meta.bestPractices.map((practice) => (
-                        <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground">
-                          <Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
+                        <div key={practice} className="flex gap-3 rounded-xl border border-black/[0.07] bg-white px-3.5 py-3 text-sm leading-5 text-foreground shadow-[0_1px_2px_rgba(24,34,28,0.035)]">
+                          <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="size-3.5" />
+                          </span>
                           <span>{practice}</span>
                         </div>
                       ))}
@@ -260,7 +275,7 @@ export default function App() {
             <div className="animate-in flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-white/50 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold">Add another platform</h3>
-                <p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any channel you publish to.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any visibility source.</p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
@@ -269,7 +284,7 @@ export default function App() {
                   onChange={(event) => setNewPlatformName(event.target.value)}
                   onKeyDown={(event) => { if (event.key === "Enter") addPlatform() }}
                   className="h-10 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20"
-                  placeholder="e.g. TikTok"
+                  placeholder="e.g. YouTube"
                 />
                 <Button onClick={addPlatform} disabled={!newPlatformName.trim()}>Add platform</Button>
                 <Button variant="ghost" onClick={() => { setAddingPlatform(false); setNewPlatformName("") }}>Cancel</Button>

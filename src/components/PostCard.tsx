@@ -19,7 +19,7 @@ export function PostCard({ post, onMove, onDelete }: { post: Post; onMove: () =>
             )}
           </div>
           <div className="relative">
-            <Button variant="ghost" size="icon" className="-mr-2 -mt-2 size-8 text-muted-foreground" aria-label="Delete post" onClick={onDelete} title="Delete post">
+            <Button variant="ghost" size="icon" className="-mr-2 -mt-2 size-8 text-muted-foreground" aria-label="Delete to-do" onClick={onDelete} title="Delete to-do">
               <Trash2 className="size-4" />
             </Button>
           </div>

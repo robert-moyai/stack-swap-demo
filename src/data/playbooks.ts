@@ -1,6 +1,6 @@
 import type { ContentType, PlatformId, Vertical, VerticalPlaybook } from "@/types"
 
-export type PlatformCategory = "social" | "review" | "launch"
+export type PlatformCategory = "social" | "review" | "launch" | "owned" | "community" | "developer" | "media"
 
 export type PlatformMeta = {
   name: string
@@ -16,9 +16,14 @@ export const PLATFORM_META: Record<PlatformId, PlatformMeta> = {
   instagram: { name: "Instagram", short: "◎", color: "bg-[#fff0f3] text-[#c13584]", dot: "bg-[#c13584]", category: "social" },
   tiktok: { name: "TikTok", short: "♪", color: "bg-[#eceeed] text-[#111]", dot: "bg-[#111]", category: "social" },
   youtube: { name: "YouTube", short: "▶", color: "bg-[#ffebeb] text-[#c4302b]", dot: "bg-[#c4302b]", category: "social" },
+  website: { name: "Website", short: "Web", color: "bg-[#eaf4ef] text-[#1d6b45]", dot: "bg-[#1d6b45]", category: "owned" },
   trustpilot: { name: "Trustpilot", short: "★", color: "bg-[#e6f7f0] text-[#00875a]", dot: "bg-[#00b67a]", category: "review" },
   g2: { name: "G2", short: "G2", color: "bg-[#ffece8] text-[#e5401f]", dot: "bg-[#ff492c]", category: "review" },
+  clutch: { name: "Clutch", short: "Cl", color: "bg-[#fff0e8] text-[#c44512]", dot: "bg-[#c44512]", category: "review" },
   google_reviews: { name: "Google Reviews", short: "G", color: "bg-[#e8f0fe] text-[#1a73e8]", dot: "bg-[#1a73e8]", category: "review" },
+  reddit: { name: "Reddit", short: "R", color: "bg-[#fff0ec] text-[#ff4500]", dot: "bg-[#ff4500]", category: "community" },
+  github: { name: "GitHub", short: "GH", color: "bg-[#eef1f4] text-[#24292f]", dot: "bg-[#24292f]", category: "developer" },
+  media: { name: "Media / Digital PR", short: "PR", color: "bg-[#f2edff] text-[#5f3dc4]", dot: "bg-[#5f3dc4]", category: "media" },
   product_hunt: { name: "Product Hunt", short: "P", color: "bg-[#fdeee9] text-[#da552f]", dot: "bg-[#da552f]", category: "launch" },
 }
 
@@ -56,14 +61,17 @@ export const PLAYBOOKS: Record<Vertical, VerticalPlaybook> = {
   },
   saas: {
     vertical: "saas",
-    platforms: { linkedin: 3, g2: 3, x: 2, product_hunt: 2, youtube: 2, instagram: 1 },
+    platforms: { website: 3, g2: 3, linkedin: 3, youtube: 3, x: 2, github: 2, media: 2, reddit: 2, product_hunt: 2, trustpilot: 1, google_reviews: 1 },
     contentTypes: { case_study: 3, product_demo: 3, testimonial: 2, thought_leadership: 2, educational: 2 },
     pairs: [
+      { platform: "website", contentType: "educational", score: 3 },
       { platform: "g2", contentType: "testimonial", score: 3 },
       { platform: "linkedin", contentType: "case_study", score: 3 },
-      { platform: "product_hunt", contentType: "product_demo", score: 3 },
-      { platform: "youtube", contentType: "product_demo", score: 2 },
+      { platform: "youtube", contentType: "product_demo", score: 3 },
       { platform: "linkedin", contentType: "thought_leadership", score: 2 },
+      { platform: "media", contentType: "thought_leadership", score: 2 },
+      { platform: "github", contentType: "educational", score: 2 },
+      { platform: "product_hunt", contentType: "product_demo", score: 2 },
     ],
   },
   fintech: {
@@ -79,13 +87,17 @@ export const PLAYBOOKS: Record<Vertical, VerticalPlaybook> = {
   },
   agency: {
     vertical: "agency",
-    platforms: { linkedin: 3, instagram: 2, x: 2, youtube: 1 },
+    platforms: { website: 3, clutch: 3, linkedin: 3, media: 3, youtube: 3, x: 2, google_reviews: 2, reddit: 2, trustpilot: 1, instagram: 1 },
     contentTypes: { case_study: 3, ugc: 2, thought_leadership: 2, testimonial: 2 },
     pairs: [
+      { platform: "website", contentType: "case_study", score: 3 },
+      { platform: "clutch", contentType: "testimonial", score: 3 },
       { platform: "linkedin", contentType: "case_study", score: 3 },
-      { platform: "instagram", contentType: "ugc", score: 2 },
+      { platform: "media", contentType: "thought_leadership", score: 3 },
+      { platform: "youtube", contentType: "case_study", score: 3 },
       { platform: "linkedin", contentType: "thought_leadership", score: 2 },
       { platform: "x", contentType: "thought_leadership", score: 2 },
+      { platform: "google_reviews", contentType: "testimonial", score: 2 },
     ],
   },
   local_services: {

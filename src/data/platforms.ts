@@ -9,27 +9,33 @@ export type PlatformConfig = {
   bestPractices: string[]
 }
 
-export const platformsStorageKey = "postflow-platforms-v1"
+export const platformsStorageKey = "visible-platforms-v1"
 
 export const genericBestPractices = [
-  "Lead with one clear message.",
-  "Adapt the format and tone to the platform’s audience.",
-  "Make the post easy to scan and act on.",
-  "Review performance and repeat what resonates.",
+  "Complete the profile or source record.",
+  "Define the visibility signal this platform can influence.",
+  "Create a recurring action cadence.",
+  "Review score movement and turn gaps into to-dos.",
 ]
 
 const knownBestPractices: Partial<Record<PlatformId, string[]>> = {
+  website: [
+    "Server-side render key content so AI crawlers can read it.",
+    "Allow GPTBot, PerplexityBot, ClaudeBot, and relevant search crawlers in robots.txt.",
+    "Create comparison, alternative, FAQ, and original research pages.",
+    "Use clear factual sentences, visible dates, and substantive quarterly refreshes.",
+  ],
   linkedin: [
-    "Lead with a strong first line before the “see more” break.",
-    "Use short paragraphs and whitespace for easy scanning.",
-    "Share a clear point of view, lesson, or practical takeaway.",
-    "End with one focused question or call to action.",
+    "Post 3-5 times per week from the founder, not only the company page.",
+    "Share frameworks, results, and clear points of view for B2B queries.",
+    "Complete founder and company profiles with consistent brand facts.",
+    "Engage in-niche daily to build authority signals.",
   ],
   x: [
-    "Make the first sentence useful enough to stand alone.",
-    "Keep each post focused on one idea.",
-    "Use threads only when every post adds meaningful context.",
-    "Invite replies with a specific, easy-to-answer prompt.",
+    "Post consistently and join niche conversations.",
+    "Use founder voice and build-in-public updates more than brand broadcasts.",
+    "Share results, lessons, and real-time signals that can feed Grok.",
+    "Track mentions and reply in relevant threads daily.",
   ],
   instagram: [
     "Pair every caption with a strong visual hook.",
@@ -44,28 +50,52 @@ const knownBestPractices: Partial<Record<PlatformId, string[]>> = {
     "End with a clear reason to follow or engage.",
   ],
   youtube: [
+    "Get the brand into useful videos and transcripts for buying-intent topics.",
     "Promise a specific outcome in the title and thumbnail.",
-    "Deliver value early; don’t bury the payoff.",
+    "Use demos, comparisons, and case studies that AI systems can summarize.",
     "Structure with chapters when the topic is dense.",
-    "Ask for one clear next action (subscribe, comment, click).",
   ],
   trustpilot: [
-    "Ask happy customers promptly after a successful delivery.",
-    "Respond to reviews with specifics, not templates.",
-    "Highlight recent, detailed reviews in other channels.",
-    "Fix recurring complaint themes before asking for more reviews.",
+    "Automate review invites after purchase or delivery.",
+    "Keep TrustScore strong through steady volume and recent reviews.",
+    "Respond to negative reviews quickly and publicly.",
+    "Verify the company domain and keep profile details complete.",
   ],
   g2: [
-    "Focus on verified customer outcomes and use cases.",
-    "Encourage reviews after clear product wins.",
+    "Complete the profile to 100 percent and choose the right categories.",
+    "Drive steady review velocity instead of one short burst.",
+    "Respond to every review and keep recent proof flowing.",
     "Keep category and competitor comparisons accurate.",
-    "Turn strong reviews into case-study seeds.",
+  ],
+  clutch: [
+    "Complete the agency profile and choose the right service categories.",
+    "Drive steady review velocity from recent client wins.",
+    "Respond to every review with specific project context.",
+    "Turn strong reviews into case-study and listicle proof.",
   ],
   google_reviews: [
-    "Make leaving a review frictionless on mobile.",
-    "Reply to every review, especially critical ones.",
-    "Ask locally relevant customers after a great visit.",
-    "Keep your business profile details complete and current.",
+    "Fully complete the Google Business Profile.",
+    "Drive steady genuine reviews that mention relevant terms naturally.",
+    "Reply to every review and publish profile updates monthly.",
+    "Keep name, address, and phone details identical everywhere.",
+  ],
+  reddit: [
+    "Participate organically in niche subreddits without hard-selling.",
+    "Answer questions genuinely and mention the brand only when relevant.",
+    "Build account karma before promotion-sensitive activity.",
+    "Treat Reddit as high-reward but volatile and diversify beyond it.",
+  ],
+  github: [
+    "Use only when the audience is technical or dev-tool oriented.",
+    "Write a strong README with clear positioning and setup details.",
+    "Submit useful open-source work to relevant awesome lists.",
+    "Track stars, traffic, clones, and docs usefulness over time.",
+  ],
+  media: [
+    "Earn mentions in trade press and listicles AI engines actually cite.",
+    "Run original data studies that journalists and roundups can reference.",
+    "Pitch expert quotes and pursue niche podcasts.",
+    "Keep brand facts consistent across every media mention.",
   ],
   product_hunt: [
     "Lead with a crisp one-liner of what ships today.",
@@ -77,25 +107,74 @@ const knownBestPractices: Partial<Record<PlatformId, string[]>> = {
 
 export const defaultPlatforms: PlatformConfig[] = [
   {
+    id: "website",
+    name: PLATFORM_META.website.name,
+    short: PLATFORM_META.website.short,
+    color: PLATFORM_META.website.color,
+    bestPractices: knownBestPractices.website!,
+  },
+  {
+    id: "trustpilot",
+    name: PLATFORM_META.trustpilot.name,
+    short: PLATFORM_META.trustpilot.short,
+    color: PLATFORM_META.trustpilot.color,
+    bestPractices: knownBestPractices.trustpilot!,
+  },
+  {
     id: "linkedin",
-    name: "LinkedIn",
-    short: "in",
-    color: "bg-[#e8f3ff] text-[#0a66c2]",
+    name: PLATFORM_META.linkedin.name,
+    short: PLATFORM_META.linkedin.short,
+    color: PLATFORM_META.linkedin.color,
     bestPractices: knownBestPractices.linkedin!,
   },
   {
     id: "x",
-    name: "X / Twitter",
-    short: "X",
-    color: "bg-[#eceeed] text-[#111]",
+    name: "X",
+    short: PLATFORM_META.x.short,
+    color: PLATFORM_META.x.color,
     bestPractices: knownBestPractices.x!,
   },
   {
-    id: "instagram",
-    name: "Instagram",
-    short: "◎",
-    color: "bg-[#fff0f3] text-[#c13584]",
-    bestPractices: knownBestPractices.instagram!,
+    id: "google_reviews",
+    name: "Google",
+    short: PLATFORM_META.google_reviews.short,
+    color: PLATFORM_META.google_reviews.color,
+    bestPractices: knownBestPractices.google_reviews!,
+  },
+  {
+    id: "media",
+    name: PLATFORM_META.media.name,
+    short: PLATFORM_META.media.short,
+    color: PLATFORM_META.media.color,
+    bestPractices: knownBestPractices.media!,
+  },
+  {
+    id: "g2",
+    name: PLATFORM_META.g2.name,
+    short: PLATFORM_META.g2.short,
+    color: PLATFORM_META.g2.color,
+    bestPractices: knownBestPractices.g2!,
+  },
+  {
+    id: "reddit",
+    name: PLATFORM_META.reddit.name,
+    short: PLATFORM_META.reddit.short,
+    color: PLATFORM_META.reddit.color,
+    bestPractices: knownBestPractices.reddit!,
+  },
+  {
+    id: "youtube",
+    name: PLATFORM_META.youtube.name,
+    short: PLATFORM_META.youtube.short,
+    color: PLATFORM_META.youtube.color,
+    bestPractices: knownBestPractices.youtube!,
+  },
+  {
+    id: "github",
+    name: PLATFORM_META.github.name,
+    short: PLATFORM_META.github.short,
+    color: PLATFORM_META.github.color,
+    bestPractices: knownBestPractices.github!,
   },
 ]
 
