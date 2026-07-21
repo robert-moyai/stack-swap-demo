@@ -53,8 +53,8 @@ export function PostDialog({
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-card p-6 shadow-2xl outline-none">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <Dialog.Title className="text-xl font-semibold tracking-tight">{isEditing ? "Edit post" : "Create a post"}</Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-muted-foreground">{isEditing ? "Update the title or idea content." : "Capture the idea now. Refine it as it moves through the board."}</Dialog.Description>
+              <Dialog.Title className="text-xl font-semibold tracking-tight">{isEditing ? "Edit to-do" : "Create a to-do"}</Dialog.Title>
+              <Dialog.Description className="mt-1 text-sm text-muted-foreground">{isEditing ? "Update the visibility action." : "Capture the visibility action now. Refine it as it moves through the board."}</Dialog.Description>
             </div>
             <Dialog.Close asChild><Button variant="ghost" size="icon" aria-label="Close"><X className="size-4" /></Button></Dialog.Close>
           </div>
@@ -71,7 +71,7 @@ export function PostDialog({
                   <label className="text-sm font-medium">Stage
                     <select className={inputClass} value={status} onChange={(e) => setStatus(e.target.value as PostStatus)}>
                       <option value="idea">Idea</option>
-                      <option value="ready">Ready to post</option>
+                      <option value="ready">Ready</option>
                     </select>
                   </label>
                 </div>
@@ -84,10 +84,10 @@ export function PostDialog({
               </>
             )}
             <label className="block text-sm font-medium">Title
-              <input autoFocus className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give the post a working title" />
+              <input autoFocus className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Give the to-do a working title" />
             </label>
-            <label className="block text-sm font-medium">Draft or note
-              <textarea className={`${inputClass} min-h-28 resize-none`} value={content} onChange={(e) => setContent(e.target.value)} placeholder="What do you want to say?" />
+            <label className="block text-sm font-medium">Action note
+              <textarea className={`${inputClass} min-h-28 resize-none`} value={content} onChange={(e) => setContent(e.target.value)} placeholder="What needs to happen?" />
             </label>
             <div className="flex justify-end gap-2 pt-2">
               <Dialog.Close asChild><Button type="button" variant="outline">Cancel</Button></Dialog.Close>

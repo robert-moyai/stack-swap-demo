@@ -19,10 +19,10 @@ export function PostCard({ post, onMove, onEdit, onDelete }: { post: Post; onMov
             )}
           </div>
           <div className="-mr-2 -mt-2 flex">
-            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Edit post" onClick={onEdit} title="Edit post">
+            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Edit to-do" onClick={onEdit} title="Edit to-do">
               <Pencil className="size-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Delete post" onClick={onDelete} title="Delete post">
+            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Delete to-do" onClick={onDelete} title="Delete to-do">
               <Trash2 className="size-4" />
             </Button>
           </div>
@@ -30,7 +30,7 @@ export function PostCard({ post, onMove, onEdit, onDelete }: { post: Post; onMov
         <h3 className="mt-3 text-[15px] font-semibold leading-snug">{post.title}</h3>
         {post.content && <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">{post.content}</p>}
         <Button variant="ghost" size="sm" onClick={onMove} className="mt-4 -ml-2 text-muted-foreground hover:text-foreground">
-          {isIdea ? <>Post <ArrowRight className="size-3.5" /></> : <><ArrowLeft className="size-3.5" /> Back to ideas</>}
+          {isIdea ? <>Prepare <ArrowRight className="size-3.5" /></> : <><ArrowLeft className="size-3.5" /> Back to ideas</>}
         </Button>
       </CardContent>
     </Card>

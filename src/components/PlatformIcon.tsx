@@ -1,13 +1,16 @@
 import {
   SiG2,
+  SiGithub,
   SiGoogle,
   SiInstagram,
   SiProducthunt,
+  SiReddit,
   SiTiktok,
   SiTrustpilot,
   SiX,
   SiYoutube,
 } from "@icons-pack/react-simple-icons"
+import { Globe2, Handshake, Newspaper } from "lucide-react"
 import type { ComponentType, SVGProps } from "react"
 
 import { PLATFORM_META } from "@/data/playbooks"
@@ -49,9 +52,14 @@ const BRAND_ICONS: Record<PlatformId, { Icon: ComponentType<BrandIconProps>; col
   instagram: { Icon: SiInstagram, color: "#E4405F" },
   tiktok: { Icon: SiTiktok, color: "#000000" },
   youtube: { Icon: SiYoutube, color: "#FF0000" },
+  website: { Icon: Globe2, color: "#1D6B45" },
   trustpilot: { Icon: SiTrustpilot, color: "#00B67A" },
   g2: { Icon: SiG2, color: "#FF492C" },
+  clutch: { Icon: Handshake, color: "#C44512" },
   google_reviews: { Icon: SiGoogle, color: "#4285F4" },
+  reddit: { Icon: SiReddit, color: "#FF4500" },
+  github: { Icon: SiGithub, color: "#181717" },
+  media: { Icon: Newspaper, color: "#5F3DC4" },
   product_hunt: { Icon: SiProducthunt, color: "#DA552F" },
 }
 

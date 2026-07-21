@@ -27,11 +27,11 @@ import { computeCoverage } from "@/lib/coverage"
 import { profileFromCrawl } from "@/lib/profileFromCrawl"
 import { isPlatformId, type ContentType, type Platform, type PlatformId, type Post, type PostDraft, type PostStatus } from "@/types"
 
-const storageKey = "postflow-posts-v1"
+const storageKey = "visible-todos-v1"
 
 const columns: { status: PostStatus; label: string; icon: typeof Lightbulb }[] = [
   { status: "idea", label: "Ideas", icon: Lightbulb },
-  { status: "ready", label: "Ready to post", icon: Check },
+  { status: "ready", label: "Ready", icon: Check },
 ]
 
 function loadPosts() {
@@ -150,7 +150,7 @@ export default function App() {
             <div className="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">V</div>
             <div>
               <div className="font-semibold leading-tight">VSBL</div>
-              <div className="text-[11px] text-muted-foreground">Content workspace</div>
+              <div className="text-[11px] text-muted-foreground">Visibility workspace</div>
             </div>
           </div>
           <BusinessChip profile={profile} onLoadContext={websiteCrawl.start} loading={websiteCrawl.status === "crawling"} />
@@ -179,11 +179,11 @@ export default function App() {
           <div className="flex flex-col justify-between gap-4 rounded-2xl border border-black/[0.07] bg-white/55 px-5 py-5 md:flex-row md:items-end md:px-6">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                <span className="h-px w-6 bg-muted-foreground/50" /> Board
+                <span className="h-px w-6 bg-muted-foreground/50" /> Visibility pipeline
               </div>
-              <h1 className="mt-2 text-2xl font-semibold tracking-[-0.035em] md:text-3xl">Turn ideas into posts.</h1>
+              <h1 className="mt-2 text-2xl font-semibold tracking-[-0.035em] md:text-3xl">Turn platform gaps into visibility wins.</h1>
               <p className="mt-1.5 max-w-xl text-sm leading-6 text-muted-foreground">
-                Keep every platform moving, from the first spark to ready-to-publish copy.
+                Track the platforms that shape AI visibility, reviews, reputation, and ranking.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -193,10 +193,10 @@ export default function App() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="h-10 w-full rounded-lg border bg-white pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20 sm:w-56"
-                  placeholder="Search posts..."
+                  placeholder="Search to-dos..."
                 />
               </div>
-              <Button onClick={() => openCreate()}><CirclePlus className="size-4" /> New post</Button>
+              <Button onClick={() => openCreate()}><CirclePlus className="size-4" /> New to-do</Button>
             </div>
           </div>
 
@@ -217,12 +217,12 @@ export default function App() {
                       <div>
                         <h2 className="text-sm font-semibold">{meta.name}</h2>
                         <p className="text-xs text-muted-foreground">
-                          {platformPosts.length} {platformPosts.length === 1 ? "post" : "posts"} in pipeline
+                          {platformPosts.length} {platformPosts.length === 1 ? "to-do" : "to-dos"} in pipeline
                         </p>
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => openCreate(platform)}>
-                      <CirclePlus className="size-4" /> Add idea
+                      <CirclePlus className="size-4" /> Add to-do
                     </Button>
                   </div>
 
@@ -252,7 +252,7 @@ export default function App() {
                                 className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground transition hover:border-foreground/25 hover:bg-white"
                               >
                                 <ArrowUpRight className="mb-2 size-4" />
-                                {search ? "No matching posts" : status === "idea" ? "Add the next idea" : "Move an idea here"}
+                                {search ? "No matching to-dos" : status === "idea" ? "Add the next to-do" : "Move a to-do here"}
                               </button>
                             )}
                           </div>
@@ -309,7 +309,7 @@ export default function App() {
             <div className="animate-in flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-white/50 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold">Add another platform</h3>
-                <p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any channel you publish to.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any visibility source.</p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
@@ -318,7 +318,7 @@ export default function App() {
                   onChange={(event) => setNewPlatformName(event.target.value)}
                   onKeyDown={(event) => { if (event.key === "Enter") addPlatform() }}
                   className="h-10 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20"
-                  placeholder="e.g. TikTok"
+                  placeholder="e.g. YouTube"
                 />
                 <Button onClick={addPlatform} disabled={!newPlatformName.trim()}>Add platform</Button>
                 <Button variant="ghost" onClick={() => { setAddingPlatform(false); setNewPlatformName("") }}>Cancel</Button>

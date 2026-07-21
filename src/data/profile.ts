@@ -9,23 +9,33 @@ import type { BusinessProfile, PlatformId } from "@/types"
  * exists, swap `loadProfile`/`saveProfile` for API calls with the same shape;
  * nothing in the coverage engine or UI needs to change.
  */
-export const PROFILE_STORAGE_KEY = "postflow-profile-v1"
-export const ENABLED_PLATFORMS_STORAGE_KEY = "postflow-enabled-platforms-v1"
+export const PROFILE_STORAGE_KEY = "visible-profile-v1"
+export const ENABLED_PLATFORMS_STORAGE_KEY = "visible-enabled-platforms-v1"
 
 /** Platforms shown on the board before the user adds any recommendations. */
-export const DEFAULT_ENABLED_PLATFORMS: PlatformId[] = ["linkedin", "x", "instagram"]
+export const DEFAULT_ENABLED_PLATFORMS: PlatformId[] = [
+  "website",
+  "trustpilot",
+  "linkedin",
+  "x",
+  "google_reviews",
+  "media",
+  "g2",
+  "reddit",
+  "youtube",
+  "github",
+]
 
 /**
- * Demo profile used until URL onboarding writes a real one. E-commerce is chosen
- * so the seeded social-only board immediately shows review-platform gaps
- * (Trustpilot store reviews, TikTok product demos, etc.).
+ * Demo profile used until URL onboarding writes a real one. SaaS is chosen
+ * because Visible is initially framed around agencies and SaaS GEO workflows.
  */
 export const MOCK_PROFILE: BusinessProfile = {
-  vertical: "ecommerce",
-  companyName: "Nordic Supply Co.",
-  url: "https://nordicsupply.example",
-  summary: "Direct-to-consumer outdoor gear brand.",
-  audience: "Outdoor and travel enthusiasts",
+  vertical: "saas",
+  companyName: "Visible",
+  url: "https://visible.example",
+  summary: "Company-agnostic visibility and GEO workspace.",
+  audience: "Agencies and SaaS teams improving AI visibility",
   source: "mock",
 }
 

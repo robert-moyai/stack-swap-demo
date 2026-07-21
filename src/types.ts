@@ -4,9 +4,14 @@ export const knownPlatforms = [
   "instagram",
   "tiktok",
   "youtube",
+  "website",
   "trustpilot",
   "g2",
+  "clutch",
   "google_reviews",
+  "reddit",
+  "github",
+  "media",
   "product_hunt",
 ] as const
 export const statuses = ["idea", "ready"] as const
