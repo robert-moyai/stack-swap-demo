@@ -1,7 +1,7 @@
-export const platforms = ["linkedin", "x", "instagram"] as const
 export const statuses = ["idea", "ready"] as const
 
-export type Platform = (typeof platforms)[number]
+export type Platform = string
+export type PlatformOption = { id: Platform; name: string }
 export type PostStatus = (typeof statuses)[number]
 
 export type Post = {

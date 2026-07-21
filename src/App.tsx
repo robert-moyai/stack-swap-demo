@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, CirclePlus, Lightbulb, Search, Settings2 } from "lucide-react"
+import { ArrowUpRight, Check, ChevronDown, CirclePlus, Lightbulb, Plus, Search, Settings2, Sparkles } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 import { PostCard } from "@/components/PostCard"
@@ -7,15 +7,20 @@ import { WebsiteContext } from "@/components/WebsiteContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { seedPosts } from "@/data/seed"
-import type { Platform, Post, PostDraft, PostStatus } from "@/types"
+import type { Platform, PlatformOption, Post, PostDraft, PostStatus } from "@/types"
 
 const storageKey = "postflow-posts-v1"
+const platformsStorageKey = "postflow-platforms-v1"
 
-const platformMeta: Record<Platform, { name: string; short: string; color: string; dot: string }> = {
-  linkedin: { name: "LinkedIn", short: "in", color: "bg-[#e8f3ff] text-[#0a66c2]", dot: "bg-[#0a66c2]" },
-  x: { name: "X / Twitter", short: "X", color: "bg-[#eceeed] text-[#111]", dot: "bg-[#111]" },
-  instagram: { name: "Instagram", short: "◎", color: "bg-[#fff0f3] text-[#c13584]", dot: "bg-[#c13584]" },
-}
+type PlatformConfig = PlatformOption & { short: string; color: string; bestPractices: string[] }
+
+const defaultPlatforms: PlatformConfig[] = [
+  { id: "linkedin", name: "LinkedIn", short: "in", color: "bg-[#e8f3ff] text-[#0a66c2]", bestPractices: ["Lead with a strong first line before the “see more” break.", "Use short paragraphs and whitespace for easy scanning.", "Share a clear point of view, lesson, or practical takeaway.", "End with one focused question or call to action."] },
+  { id: "x", name: "X / Twitter", short: "X", color: "bg-[#eceeed] text-[#111]", bestPractices: ["Make the first sentence useful enough to stand alone.", "Keep each post focused on one idea.", "Use threads only when every post adds meaningful context.", "Invite replies with a specific, easy-to-answer prompt."] },
+  { id: "instagram", name: "Instagram", short: "◎", color: "bg-[#fff0f3] text-[#c13584]", bestPractices: ["Pair every caption with a strong visual hook.", "Put the most important message in the opening lines.", "Use a clear caption structure: hook, value, action.", "Choose a small set of highly relevant hashtags."] },
+]
+
+const genericBestPractices = ["Lead with one clear message.", "Adapt the format and tone to the platform’s audience.", "Make the post easy to scan and act on.", "Review performance and repeat what resonates."]
 
 const columns: { status: PostStatus; label: string; icon: typeof Lightbulb }[] = [
   { status: "idea", label: "Ideas", icon: Lightbulb },
@@ -31,13 +36,26 @@ function loadPosts() {
   }
 }
 
+function loadPlatforms() {
+  try {
+    const saved = localStorage.getItem(platformsStorageKey)
+    return saved ? (JSON.parse(saved) as PlatformConfig[]) : defaultPlatforms
+  } catch {
+    return defaultPlatforms
+  }
+}
+
 export default function App() {
   const [posts, setPosts] = useState<Post[]>(loadPosts)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogPlatform, setDialogPlatform] = useState<Platform>("linkedin")
+  const [platforms, setPlatforms] = useState<PlatformConfig[]>(loadPlatforms)
+  const [addingPlatform, setAddingPlatform] = useState(false)
+  const [newPlatformName, setNewPlatformName] = useState("")
 
   useEffect(() => localStorage.setItem(storageKey, JSON.stringify(posts)), [posts])
+  useEffect(() => localStorage.setItem(platformsStorageKey, JSON.stringify(platforms)), [platforms])
 
   const filteredPosts = useMemo(() => {
     const term = search.toLowerCase().trim()
@@ -59,6 +77,16 @@ export default function App() {
 
   function deletePost(id: string) {
     setPosts((current) => current.filter((post) => post.id !== id))
+  }
+
+  function addPlatform() {
+    const name = newPlatformName.trim()
+    if (!name) return
+    const baseId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "platform"
+    if (platforms.some((platform) => platform.id === baseId || platform.name.toLowerCase() === name.toLowerCase())) return
+    setPlatforms((current) => [...current, { id: baseId, name, short: name.slice(0, 2).toUpperCase(), color: "bg-[#eef1ec] text-[#34443a]", bestPractices: genericBestPractices }])
+    setNewPlatformName("")
+    setAddingPlatform(false)
   }
 
   return (
@@ -99,8 +127,8 @@ export default function App() {
         </div>
 
         <div className="mt-8 space-y-5">
-          {(Object.keys(platformMeta) as Platform[]).map((platform, platformIndex) => {
-            const meta = platformMeta[platform]
+          {platforms.map((meta, platformIndex) => {
+            const platform = meta.id
             const platformPosts = filteredPosts.filter((post) => post.platform === platform)
             return (
               <section key={platform} className="animate-in overflow-hidden rounded-2xl border border-black/[0.07] bg-white/55 shadow-[0_1px_2px_rgba(24,34,28,0.03)]" style={{ animationDelay: `${platformIndex * 80}ms` }}>
@@ -138,13 +166,38 @@ export default function App() {
                     )
                   })}
                 </div>
+
+                <details className="group border-t border-black/[0.06] bg-white/60">
+                  <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3.5 text-xs font-semibold text-muted-foreground transition hover:bg-white [&::-webkit-details-marker]:hidden">
+                    <span className="flex items-center gap-2"><Sparkles className="size-3.5" /> Best practices for {meta.name}</span>
+                    <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="grid gap-2 border-t border-black/[0.05] px-5 py-4 sm:grid-cols-2">
+                    {meta.bestPractices.map((practice) => <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground"><Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" /><span>{practice}</span></div>)}
+                  </div>
+                </details>
               </section>
             )
           })}
         </div>
+
+        <div className="mt-6">
+          {addingPlatform ? (
+            <div className="animate-in flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-white/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div><h3 className="text-sm font-semibold">Add another platform</h3><p className="mt-1 text-xs text-muted-foreground">Create a new swimlane for any channel you publish to.</p></div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input autoFocus value={newPlatformName} onChange={(event) => setNewPlatformName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addPlatform() }} className="h-10 rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring/20" placeholder="e.g. TikTok" />
+                <Button onClick={addPlatform} disabled={!newPlatformName.trim()}>Add platform</Button>
+                <Button variant="ghost" onClick={() => { setAddingPlatform(false); setNewPlatformName("") }}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setAddingPlatform(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-white/30 py-5 text-sm font-medium text-muted-foreground transition hover:border-foreground/25 hover:bg-white hover:text-foreground"><Plus className="size-4" /> Add a platform</button>
+          )}
+        </div>
       </main>
 
-      {dialogOpen && <PostDialog open={dialogOpen} onOpenChange={setDialogOpen} defaultPlatform={dialogPlatform} onSave={addPost} />}
+      {dialogOpen && <PostDialog open={dialogOpen} onOpenChange={setDialogOpen} defaultPlatform={dialogPlatform} onSave={addPost} platformOptions={platforms} />}
     </div>
   )
 }

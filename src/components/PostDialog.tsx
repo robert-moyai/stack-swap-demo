@@ -3,24 +3,20 @@ import { X } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import type { Platform, PostDraft, PostStatus } from "@/types"
-
-const platformLabels: Record<Platform, string> = {
-  linkedin: "LinkedIn",
-  x: "X / Twitter",
-  instagram: "Instagram",
-}
+import type { Platform, PlatformOption, PostDraft, PostStatus } from "@/types"
 
 export function PostDialog({
   open,
   onOpenChange,
   defaultPlatform,
   onSave,
+  platformOptions,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultPlatform: Platform
   onSave: (post: PostDraft) => void
+  platformOptions: PlatformOption[]
 }) {
   const [platform, setPlatform] = useState<Platform>(defaultPlatform)
   const [status, setStatus] = useState<PostStatus>("idea")
@@ -54,7 +50,7 @@ export function PostDialog({
             <div className="grid grid-cols-2 gap-4">
               <label className="text-sm font-medium">Platform
                 <select className={inputClass} value={platform} onChange={(e) => setPlatform(e.target.value as Platform)}>
-                  {Object.entries(platformLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  {platformOptions.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
                 </select>
               </label>
               <label className="text-sm font-medium">Stage
