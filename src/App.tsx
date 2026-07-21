@@ -8,6 +8,7 @@ import { PostDialog } from "@/components/PostDialog"
 import { WebsiteContext, type CrawlPage } from "@/components/WebsiteContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getExemplar } from "@/data/exemplars"
 import {
   customPlatformConfig,
   loadPlatforms,
@@ -15,11 +16,12 @@ import {
   platformsStorageKey,
   type PlatformConfig,
 } from "@/data/platforms"
+import { CONTENT_TYPE_META } from "@/data/playbooks"
 import { loadProfile, saveProfile } from "@/data/profile"
 import { seedPosts } from "@/data/seed"
 import { computeCoverage } from "@/lib/coverage"
 import { profileFromCrawl } from "@/lib/profileFromCrawl"
-import type { BusinessProfile, ContentType, Platform, PlatformId, Post, PostDraft, PostStatus } from "@/types"
+import { isPlatformId, type BusinessProfile, type ContentType, type Platform, type PlatformId, type Post, type PostDraft, type PostStatus } from "@/types"
 
 const storageKey = "postflow-posts-v1"
 
@@ -163,6 +165,7 @@ export default function App() {
           {platforms.map((meta, platformIndex) => {
             const platform = meta.id
             const platformPosts = filteredPosts.filter((post) => post.platform === platform)
+            const exemplar = isPlatformId(platform) ? getExemplar(profile.vertical, platform) : undefined
             return (
               <section key={platform} className="animate-in overflow-hidden rounded-2xl border border-black/[0.07] bg-white/55 shadow-[0_1px_2px_rgba(24,34,28,0.03)]" style={{ animationDelay: `${platformIndex * 80}ms` }}>
                 <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
@@ -205,13 +208,36 @@ export default function App() {
                     <span className="flex items-center gap-2"><Sparkles className="size-3.5" /> Best practices for {meta.name}</span>
                     <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
                   </summary>
-                  <div className="grid gap-2 border-t border-black/[0.05] px-5 py-4 sm:grid-cols-2">
-                    {meta.bestPractices.map((practice) => (
-                      <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground">
-                        <Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
-                        <span>{practice}</span>
+                  <div className="space-y-4 border-t border-black/[0.05] px-5 py-4">
+                    {exemplar && (
+                      <div className="rounded-xl border border-black/[0.06] bg-white p-3.5">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          Who wins here
+                        </div>
+                        <div className="mt-1.5 text-xs font-medium text-foreground">
+                          {exemplar.brands.join(" · ")}
+                        </div>
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{exemplar.play}</p>
+                        <p className="mt-2 text-[11px] leading-4 text-foreground/80">
+                          <span className="font-medium">Pattern:</span> {exemplar.pattern}
+                        </p>
+                        <div className="mt-2.5 flex flex-wrap gap-1.5">
+                          {exemplar.contentTypes.map((type) => (
+                            <span key={type} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {CONTENT_TYPE_META[type].label}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {meta.bestPractices.map((practice) => (
+                        <div key={practice} className="flex gap-2 text-xs leading-5 text-muted-foreground">
+                          <Check className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
+                          <span>{practice}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </details>
               </section>

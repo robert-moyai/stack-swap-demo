@@ -50,6 +50,7 @@ The API key is read only by the Vite development server and is never included in
 - `src/components/PostCard.tsx` / `PostDialog.tsx` — board cards and create flow (content type + dynamic platforms)
 - `src/data/platforms.ts` — board swimlanes, best-practice copy, add-platform helpers
 - `src/data/playbooks.ts` — curated per-vertical platform/content scores
+- `src/data/exemplars.ts` — category brands + plays per vertical/platform (“who wins here”)
 - `src/data/profile.ts` — `BusinessProfile` storage contract
 - `src/lib/coverage.ts` — pure coverage/gap engine
 - `src/lib/profileFromCrawl.ts` — derive profile from crawl pages

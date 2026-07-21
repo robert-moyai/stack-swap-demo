@@ -1,7 +1,8 @@
-import { Plus, Sparkles, Target, TrendingUp } from "lucide-react"
+import { Plus, Sparkles, Target, TrendingUp, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { CONTENT_TYPE_META, PLATFORM_META, VERTICAL_META } from "@/data/playbooks"
+import { exemplarsForVertical } from "@/data/exemplars"
 import type { CoverageResult, CoverageStatus } from "@/lib/coverage"
 import type { BusinessProfile, ContentType, Platform, PlatformId, Score } from "@/types"
 
@@ -53,6 +54,7 @@ export function CoveragePanel({
   const enabled = new Set(enabledPlatforms)
   const platformRows = coverage.platforms.filter((row) => row.score > 0 || row.count > 0)
   const contentRows = coverage.contentTypes.filter((row) => row.score > 0 || row.count > 0)
+  const exemplars = exemplarsForVertical(profile.vertical)
 
   return (
     <section className="animate-in overflow-hidden rounded-2xl border border-black/[0.07] bg-white/70 shadow-[0_1px_2px_rgba(24,34,28,0.03)]">
@@ -128,6 +130,62 @@ export function CoveragePanel({
           </ul>
         </div>
       </div>
+
+      {exemplars.length > 0 && (
+        <div className="border-t border-black/[0.06] p-5 md:p-6">
+          <div className="mb-1 flex items-center gap-2">
+            <Users className="size-4 text-muted-foreground" />
+            <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Who wins here — and how
+            </h3>
+          </div>
+          <p className="mb-4 text-xs leading-5 text-muted-foreground">
+            Category exemplars for {vertical.label.toLowerCase()}, not a scrape of your exact competitors. Use them as
+            the playbook for each channel.
+          </p>
+          <div className="grid gap-3 lg:grid-cols-3">
+            {exemplars.map(({ platform, exemplar }) => {
+              const meta = PLATFORM_META[platform]
+              const primaryType = exemplar.contentTypes[0]
+              const canAdd = !enabled.has(platform)
+              return (
+                <div key={platform} className="flex flex-col rounded-xl border border-black/[0.07] bg-white p-4">
+                  <div className="flex items-center gap-2.5">
+                    <PlatformBadge platform={platform} />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">{meta.name}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">{exemplar.brands.join(" · ")}</div>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">{exemplar.play}</p>
+                  <p className="mt-2 text-[11px] leading-4 text-foreground/80">
+                    <span className="font-medium">Pattern:</span> {exemplar.pattern}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {exemplar.contentTypes.map((type) => (
+                      <span key={type} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {CONTENT_TYPE_META[type].label}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-auto flex gap-2 pt-4">
+                    {canAdd && (
+                      <Button variant="outline" size="sm" onClick={() => onAddPlatform(platform)}>
+                        <Plus className="size-3.5" /> Add platform
+                      </Button>
+                    )}
+                    {primaryType && (
+                      <Button size="sm" onClick={() => onAddIdea(platform, primaryType)}>
+                        <Plus className="size-3.5" /> Try this play
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {coverage.gaps.length > 0 && (
         <div className="border-t border-black/[0.06] p-5 md:p-6">
