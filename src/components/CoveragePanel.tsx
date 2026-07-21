@@ -1,5 +1,6 @@
 import { Plus, Sparkles, Target, TrendingUp } from "lucide-react"
 
+import { PlatformBadge } from "@/components/PlatformIcon"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { NestedCollapsible, SectionCard } from "@/components/ui/section"
@@ -26,13 +27,6 @@ function ScoreDots({ score }: { score: Score }) {
         <span key={level} className={`size-1.5 rounded-full ${level <= score ? "bg-primary" : "bg-border"}`} />
       ))}
     </span>
-  )
-}
-
-function PlatformBadge({ platform }: { platform: PlatformId }) {
-  const meta = PLATFORM_META[platform]
-  return (
-    <span className={`grid size-8 place-items-center rounded-lg text-xs font-bold ${meta.color}`}>{meta.short}</span>
   )
 }
 
@@ -85,7 +79,7 @@ export function CoveragePanel({
               const canAdd = row.score >= 2 && !enabled.has(row.platform)
               return (
                 <li key={row.platform} className="flex items-center gap-3">
-                  <PlatformBadge platform={row.platform} />
+                  <PlatformBadge platform={row.platform} size="sm" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate text-sm font-medium">{meta.name}</span>
@@ -144,7 +138,7 @@ export function CoveragePanel({
                   key={`${gap.platform}-${gap.contentType}`}
                   className="flex items-center gap-3 rounded-xl border border-black/[0.07] bg-white p-3.5 transition hover:border-foreground/15"
                 >
-                  <PlatformBadge platform={gap.platform} />
+                  <PlatformBadge platform={gap.platform} size="sm" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">
                       {contentMeta.label} on {platformMeta.name}
@@ -176,7 +170,7 @@ export function CoveragePanel({
               return (
                 <div key={platform} className="flex flex-col rounded-xl border border-black/[0.07] bg-white p-4 transition hover:border-foreground/15">
                   <div className="flex items-center gap-2.5">
-                    <PlatformBadge platform={platform} />
+                    <PlatformBadge platform={platform} size="sm" />
                     <div className="min-w-0">
                       <div className="truncate text-sm font-semibold">{meta.name}</div>
                       <div className="truncate text-[11px] text-muted-foreground">{exemplar.brands.join(" · ")}</div>

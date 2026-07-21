@@ -40,6 +40,7 @@ The API key is read only by the Vite development server and is never included in
 - Firecrawl crawl/scrape via Vite middleware
 - Browser localStorage for board + profile persistence
 - JSZip for packaging crawled markdown
+- [Simple Icons](https://simpleicons.org) brand SVGs via `@icons-pack/react-simple-icons` (LinkedIn uses a local fallback mark)
 
 ## Architecture
 

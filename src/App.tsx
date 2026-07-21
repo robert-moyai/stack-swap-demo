@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 
 import { BusinessChip } from "@/components/BusinessChip"
 import { CoveragePanel } from "@/components/CoveragePanel"
+import { PlatformBadge } from "@/components/PlatformIcon"
 import { PostCard } from "@/components/PostCard"
 import { PostDialog } from "@/components/PostDialog"
 import { PreparePostDialog } from "@/components/PreparePostDialog"
@@ -201,7 +202,7 @@ export default function App() {
                 >
                   <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`grid size-9 place-items-center rounded-xl text-sm font-bold ${meta.color}`}>{meta.short}</div>
+                      <PlatformBadge platform={platform} />
                       <div>
                         <h2 className="text-sm font-semibold">{meta.name}</h2>
                         <p className="text-xs text-muted-foreground">
