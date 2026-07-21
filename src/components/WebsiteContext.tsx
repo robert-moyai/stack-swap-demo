@@ -2,7 +2,9 @@ import JSZip from "jszip"
 import { CheckCircle2, Download, FileArchive, Globe2, LoaderCircle, RotateCcw } from "lucide-react"
 import { FormEvent, useRef, useState } from "react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SectionCard } from "@/components/ui/section"
 
 export type CrawlPage = {
   markdown?: string
@@ -38,6 +40,7 @@ export function WebsiteContext({
   const [progress, setProgress] = useState({ completed: 0, total: 0 })
   const [context, setContext] = useState<LoadedContext | null>(null)
   const [error, setError] = useState("")
+  const [open, setOpen] = useState(true)
   const downloadUrl = useRef<string | null>(null)
 
   async function poll(id: string) {
@@ -85,9 +88,11 @@ export function WebsiteContext({
       const fileName = `${new URL(sourceUrl).hostname.replace(/^www\./, "")}-context.zip`
       setContext({ url: sourceUrl, pages: pages.length, fileName, size: formatBytes(blob.size), downloadUrl: downloadUrl.current })
       setStatus("loaded")
+      setOpen(false)
       onContextLoaded?.(sourceUrl, pages)
     } catch (caught) {
       setStatus("error")
+      setOpen(true)
       setError(caught instanceof Error ? caught.message : "The website could not be loaded.")
     }
   }
@@ -95,43 +100,89 @@ export function WebsiteContext({
   function reset() {
     if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current)
     downloadUrl.current = null
-    setStatus("idle"); setContext(null); setProgress({ completed: 0, total: 0 }); setError("")
+    setStatus("idle")
+    setContext(null)
+    setProgress({ completed: 0, total: 0 })
+    setError("")
+    setOpen(true)
   }
 
   return (
-    <section className="mb-8 overflow-hidden rounded-2xl border border-black/[0.07] bg-white shadow-[0_6px_24px_rgba(24,34,28,0.05)]">
-      <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between lg:p-6">
-        <div className="flex items-start gap-3.5">
-          <div className={`grid size-10 shrink-0 place-items-center rounded-xl ${status === "loaded" ? "bg-emerald-50 text-emerald-700" : "bg-[#fff0e9] text-[#df5b36]"}`}>
-            {status === "loaded" ? <CheckCircle2 className="size-5" /> : <Globe2 className="size-5" />}
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold">{status === "loaded" ? "Website context loaded" : "Add your website context"}</h2>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">{status === "loaded" && context ? `${context.pages} pages are ready as markdown.` : "Crawl your site so your content workspace understands your brand."}</p>
-          </div>
-        </div>
-
+    <SectionCard
+      title={status === "loaded" ? "Website context loaded" : "Website context"}
+      description={
+        status === "loaded" && context
+          ? `${context.pages} pages ready as markdown`
+          : "Crawl your site so coverage understands your brand"
+      }
+      icon={status === "loaded" ? <CheckCircle2 className="size-4 text-emerald-700" /> : <Globe2 className="size-4" />}
+      badge={
+        status === "loaded" ? (
+          <Badge variant="secondary" className="bg-emerald-50 text-[11px] text-emerald-700">Ready</Badge>
+        ) : status === "crawling" ? (
+          <Badge variant="secondary" className="text-[11px]">Crawling…</Badge>
+        ) : undefined
+      }
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between md:p-6">
         {status === "loaded" && context ? (
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
             <div className="flex min-w-0 items-center gap-3 rounded-lg border bg-background px-3 py-2">
               <FileArchive className="size-4 shrink-0 text-muted-foreground" />
-              <div className="min-w-0"><p className="max-w-48 truncate text-xs font-medium">{context.fileName}</p><p className="text-[11px] text-muted-foreground">{context.size}</p></div>
+              <div className="min-w-0">
+                <p className="max-w-48 truncate text-xs font-medium">{context.fileName}</p>
+                <p className="text-[11px] text-muted-foreground">{context.size}</p>
+              </div>
             </div>
-            <Button asChild><a href={context.downloadUrl} download={context.fileName}><Download className="size-4" /> Download ZIP</a></Button>
-            <Button variant="ghost" size="icon" onClick={reset} aria-label="Load another website"><RotateCcw className="size-4" /></Button>
+            <Button asChild>
+              <a href={context.downloadUrl} download={context.fileName}>
+                <Download className="size-4" /> Download ZIP
+              </a>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={reset} aria-label="Load another website">
+              <RotateCcw className="size-4" />
+            </Button>
           </div>
         ) : (
-          <form onSubmit={submit} className="flex w-full flex-col gap-2 sm:flex-row lg:max-w-xl">
+          <form onSubmit={submit} className="flex w-full flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <Globe2 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input value={url} onChange={(event) => setUrl(event.target.value)} disabled={status === "crawling"} className="h-10 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20" placeholder="https://yourwebsite.com" />
+              <input
+                value={url}
+                onChange={(event) => setUrl(event.target.value)}
+                disabled={status === "crawling"}
+                className="h-10 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring/20"
+                placeholder="https://yourwebsite.com"
+              />
             </div>
-            <Button disabled={!url.trim() || status === "crawling"}>{status === "crawling" ? <><LoaderCircle className="size-4 animate-spin" /> {progress.completed}{progress.total ? ` / ${progress.total}` : ""} pages</> : "Load context"}</Button>
+            <Button disabled={!url.trim() || status === "crawling"}>
+              {status === "crawling" ? (
+                <>
+                  <LoaderCircle className="size-4 animate-spin" /> {progress.completed}
+                  {progress.total ? ` / ${progress.total}` : ""} pages
+                </>
+              ) : (
+                "Load context"
+              )}
+            </Button>
           </form>
         )}
       </div>
-      {status === "crawling" && <div className="h-1 bg-muted"><div className="h-full animate-pulse bg-[#df5b36] transition-all" style={{ width: progress.total ? `${Math.max(8, Math.min(95, progress.completed / progress.total * 100))}%` : "12%" }} /></div>}
-      {status === "error" && <div className="border-t border-red-100 bg-red-50 px-5 py-3 text-xs text-red-700"><strong>Couldn’t load this website.</strong> {error}</div>}
-    </section>
+      {status === "crawling" && (
+        <div className="h-1 bg-muted">
+          <div
+            className="h-full animate-pulse bg-[#df5b36] transition-all duration-300"
+            style={{ width: progress.total ? `${Math.max(8, Math.min(95, (progress.completed / progress.total) * 100))}%` : "12%" }}
+          />
+        </div>
+      )}
+      {status === "error" && (
+        <div className="border-t border-red-100 bg-red-50 px-5 py-3 text-xs text-red-700">
+          <strong>Couldn’t load this website.</strong> {error}
+        </div>
+      )}
+    </SectionCard>
   )
 }
